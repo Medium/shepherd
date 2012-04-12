@@ -52,7 +52,7 @@ BuilderInstance.prototype._error = function (wrapper, error) {
   if(wrapper.tracing) this._traceMsg(null, "returning with error", (new Date()/1 - wrapper.traceStart))
 
   wrapper.returned = true
-  wrapper.callback(err, null)
+  wrapper.callback(error, null)
 }
 
 /**
@@ -155,6 +155,7 @@ BuilderInstance.prototype._run = function (wrapper, key, deps) {
  * @param {Function} callback
  */
 BuilderInstance.prototype.build = function (data, callback) {
+  if (this.numRequiredFields === 0) return callback(null, {})
   var wrapper = {
     tracing: this.traceNext
   , handled: {}
@@ -183,7 +184,13 @@ BuilderInstance.prototype.build = function (data, callback) {
  * @param {Object} handlers optional handlers when cloning a factory instance
  */
 function BuilderFactory(handlers) {
+  this.cloneOnly = false
   this.handlers = typeof handlers !== 'undefined' ? clone(handlers) : {}
+}
+
+BuilderFactory.prototype.forceClone = function () {
+  this.cloneOnly = true
+  return this
 }
 
 /**
@@ -205,6 +212,8 @@ BuilderFactory.prototype.clone = function () {
  * @return {BuilderFactory}
  */
 BuilderFactory.prototype.add = function (name, fn, deps) {
+  if (this.cloneOnly) return this.clone().add(name, fn, deps)
+
   deps = deps || []
 
   if(typeof fn === 'string') {
@@ -216,6 +225,27 @@ BuilderFactory.prototype.add = function (name, fn, deps) {
   }
 
   return this
+}
+
+/**
+ * Create a set of builders with optimized execution paths
+ *
+ * @this {BuilderFactory}
+ * @param {Array.<Object>} requiredFieldsMap map of builder names to required fields
+ * @return {Object} an object with a set of builders in it
+ */
+BuilderFactory.prototype.newBuilders = function (requiredFieldsMap) {
+  var response = null
+    , key
+    , builder
+
+  for (key in requiredFieldsMap) {
+    builder = this.newBuilder(requiredFieldsMap[key])
+    if (response === null) response = builder
+    response[key] = builder
+  }
+
+  return response
 }
 
 /**
@@ -265,4 +295,5 @@ function clone(obj){
 
 module.exports = {
   BuilderFactory: BuilderFactory
+, BuilderInstance: BuilderInstance
 }
