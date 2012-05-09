@@ -214,7 +214,7 @@ BuilderFactory.prototype.forceClone = function () {
  * @return {BuilderFactory}
  */
 BuilderFactory.prototype.clone = function () {
-  var cloned = BuilderFactory(this.handlers)
+  var cloned = new BuilderFactory(this.handlers)
   return this.hasStrictAdds ? cloned.strictAdds() : cloned
 }
 
