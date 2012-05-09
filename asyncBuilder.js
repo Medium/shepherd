@@ -67,7 +67,7 @@ BuilderInstance.prototype._ran = function (wrapper, key) {
   if (this.requiredFields[key] && typeof wrapper.requiredData[key] === 'undefined') {
     wrapper.requiredData[key] = wrapper.data[key]
     wrapper.pendingRequired--
-    if(wrapper.pendingRequired === 0) {
+    if(wrapper.pendingRequired <= 0) {
       wrapper.returned = true
       if(wrapper.tracing) this._traceMsg(null, "successfully returning", (new Date()/1 - wrapper.traceStart))
       return wrapper.callback(null, wrapper.requiredData)
@@ -155,6 +155,7 @@ BuilderInstance.prototype._run = function (wrapper, key, deps) {
  * @param {Function} callback
  */
 BuilderInstance.prototype.build = function (data, callback) {
+  if (typeof callback !== 'function') throw new Error('callback is not a function')
   if (this.numRequiredFields === 0) return callback(null, {})
   var wrapper = {
     tracing: this.traceNext
@@ -184,10 +185,24 @@ BuilderInstance.prototype.build = function (data, callback) {
  * @param {Object} handlers optional handlers when cloning a factory instance
  */
 function BuilderFactory(handlers) {
+  this.hasStrictAdds = false
   this.cloneOnly = false
   this.handlers = typeof handlers !== 'undefined' ? clone(handlers) : {}
 }
 
+/**
+ * Toggle flag for this builder factory which will guarantee function argument counts
+ * match up with dependencies where possible (doesn't work with wrapped functions)
+ */
+BuilderFactory.prototype.strictAdds = function () {
+  this.hasStrictAdds = true
+  return this
+}
+
+/**
+ * Whenever performing a change operation on this factory, create a new one and
+ * use it instead
+ */
 BuilderFactory.prototype.forceClone = function () {
   this.cloneOnly = true
   return this
@@ -199,7 +214,8 @@ BuilderFactory.prototype.forceClone = function () {
  * @return {BuilderFactory}
  */
 BuilderFactory.prototype.clone = function () {
-  return new BuilderFactory(this.handlers)
+  var cloned = BuilderFactory(this.handlers)
+  return this.hasStrictAdds ? cloned.strictAdds() : cloned
 }
 
 /**
@@ -219,6 +235,12 @@ BuilderFactory.prototype.add = function (name, fn, deps) {
   if(typeof fn === 'string') {
     this.handlers[name] = this.handlers[fn]
   } else if(typeof fn === 'function'){
+    if (this.hasStrictAdds) {
+      var args = fn.toString().match(/^function [^\(]*\(([^\)]*)\)/)[1].split(', ')
+      if (args.length !== 0 && args[0] !== '' && (args.length - 1) !== deps.length) {
+        throw new Error(name + " has " + (args.length - 1) + " args and received " + deps.length)
+      }
+    }
     this.handlers[name] = {fn:fn, deps:deps}
   } else {
     throw new Error("Invalid function for handler '" + name + "'")
