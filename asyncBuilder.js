@@ -102,10 +102,24 @@ BuilderInstance.prototype._run = function (wrapper, key, deps) {
 
   var args = []
     , i = 0
+    , field
     , iEnd = deps.length
+    , isDot
   for(; i<iEnd; i+=1) {
-    if(wrapper.handled[deps[i]] !== FINISHED_HANDLING) return
-    args.push(wrapper.data[deps[i]])
+    isDot = deps[i].indexOf('.') !== -1
+    var field = isDot ? deps[i].substr(0,deps[i].indexOf('.')) : deps[i]
+    if(wrapper.handled[field] !== FINISHED_HANDLING) return
+
+    if (isDot) {
+      var obj = wrapper.data[field]
+        , fieldParts = deps[i].split(/\./)
+        , j = 1
+      for( ; typeof obj !== 'undefined' && j < fieldParts.length ; j+=1) {
+        obj = obj[fieldParts[j]]
+      }
+      args.push(obj)
+
+    } else args.push(wrapper.data[deps[i]])
   }
   wrapper.handled[key] = STARTED_HANDLING
 
@@ -282,6 +296,7 @@ BuilderFactory.prototype.newBuilder = function (requiredFields) {
   var paths = {}
     , fields = [].concat(requiredFields)
     , field
+    , baseField
     , input
     , deps
     , i
@@ -291,9 +306,10 @@ BuilderFactory.prototype.newBuilder = function (requiredFields) {
   while (fields.length) {
     field = fields.shift()
     input = this.handlers[field] || {deps:[]}
+
     if(input.deps.length === 0) noDeps.push(field)
     for(i=0,iEnd=input.deps.length; i<iEnd; i+=1) {
-      depField = input.deps[i]
+      depField = input.deps[i].indexOf('.') !== -1 ? input.deps[i].substr(0,input.deps[i].indexOf('.')) : input.deps[i]
       if(!paths[depField]) {
         paths[depField] = {}
         fields.push(depField)

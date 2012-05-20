@@ -33,12 +33,10 @@ var asyncBuilder = require("./asyncBuilder")
     }
 
 var TestBuilderFactory = new asyncBuilder.BuilderFactory()
-  .add("reqUser", getUser, ["req"])
-  .add("user", "reqUser")
-  .add("name", getUserName, ["user"])
+  .add("name", getUserName, ["req.user"])
   .add("firstName", getFirstName, ["name"])
   .add("lastName", getLastName, ["name"])
-  .add("age", getAge, ["user"])
+  .add("age", getAge, ["req.user"])
 
 var SecondTestBuilderFactory = TestBuilderFactory.clone()
   .add("currentDate", getCurrentDate)
