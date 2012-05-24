@@ -214,6 +214,15 @@ BuilderFactory.prototype.strictAdds = function () {
 }
 
 /**
+ * Toggle flag for this builder factory which will guarantee function arguments exist
+ * as a dependency or explicitly provided by builder
+ */
+BuilderFactory.prototype.strictBuilds = function (fields) {
+  this.strictBuildFields = fields
+  return this
+}
+
+/**
  * Whenever performing a change operation on this factory, create a new one and
  * use it instead
  */
@@ -229,7 +238,9 @@ BuilderFactory.prototype.forceClone = function () {
  */
 BuilderFactory.prototype.clone = function () {
   var cloned = new BuilderFactory(this.handlers)
-  return this.hasStrictAdds ? cloned.strictAdds() : cloned
+  if (this.hasStrictAdds) cloned.strictAdds()
+  if (this.strictBuildFields) cloned.strictBuilds(this.strictBuildFields)
+  return cloned
 }
 
 /**
@@ -315,6 +326,16 @@ BuilderFactory.prototype.newBuilder = function (requiredFields) {
         fields.push(depField)
       }
       paths[depField][field] = input
+    }
+  }
+
+  if (this.strictBuildFields) {
+    for(var i in noDeps) {
+      var found = this.handlers[noDeps[i]]
+      for(var j=0; j<this.strictBuildFields.length && !found; j+=1) {
+        if (noDeps[i] === this.strictBuildFields[j]) found = true
+      }
+      if (!found) throw new Error(noDeps[i] + " was not found in builder and was not provided in .strictBuilds()")
     }
   }
 
