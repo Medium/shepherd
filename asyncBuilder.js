@@ -158,7 +158,12 @@ BuilderInstance.prototype._run = function (wrapper, key, deps) {
     throw new Error("Invalid function for handler '" + key + "'")
   }
   if (wrapper.tracing) this._traceMsg(key, "starting async request")
-  handler.fn.apply(null, args)
+
+  try {
+    handler.fn.apply(null, args)
+  } catch (e) {
+    self._error(wrapper, e)
+  }
 }
 
 /**
