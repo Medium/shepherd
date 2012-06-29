@@ -1,5 +1,21 @@
 var asyncBuilder = require("./asyncBuilder")
+var BuilderResponse = asyncBuilder.BuilderResponse
 var q = require("q")
+var assert = require("assert")
+
+// basic request object for testing
+var request = {
+  currentUser: {
+    username: "jeremy123"
+  }
+}
+
+// retrieve the salt we expect to create through the factories
+var expectedSalt = function () {
+  var currentUser = getCurrentUser(request)
+  var currentSeconds = getSecondsNow(getMillisNow())
+  return createUserSalt(currentUser.username, currentSeconds)
+}()
 
 var testMethods = [
     testSynchronous
@@ -31,7 +47,7 @@ function testSynchronous(next) {
   factory.add("millisNow", getMillisNow)
   factory.add("secondsNow", getSecondsNow, ["millisNow"])
   factory.add("userSalt", createUserSalt, ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: expectedSalt}], next)
 }
 
 /**
@@ -47,7 +63,7 @@ function testGetters(next) {
   factory.add("millisNow", withGetters(getMillisNow))
   factory.add("secondsNow", withGetters(getSecondsNow), ["millisNow"])
   factory.add("userSalt", withGetters(createUserSalt), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -61,7 +77,7 @@ function testCallbacks(next) {
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("userSalt", withCallback(createUserSalt), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: expectedSalt}], next)
 }
 
 /**
@@ -75,7 +91,7 @@ function testPromises(next) {
   factory.add("millisNow", withPromise(getMillisNow))
   factory.add("secondsNow", withPromise(getSecondsNow), ["millisNow"])
   factory.add("userSalt", withPromise(createUserSalt), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: expectedSalt}], next)
 }
 
 /**
@@ -90,7 +106,7 @@ function testPromisesAndGetters(next) {
   factory.add("millisNow", withPromise(withGetters(getMillisNow)))
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("userSalt", withPromise(withGetters(createUserSalt)), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -103,7 +119,7 @@ function testThrowCallback(next) {
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("userSalt", throwCallback(createUserSalt), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [new Error("I'm done here"), null], next)
 }
 
 /**
@@ -116,7 +132,7 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("userSalt", throwSynchronously(createUserSalt), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [new Error("I'm done here"), null], next)
 }
 
 /**
@@ -131,7 +147,7 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("millisNow", withPromise(withGetters(getMillisNow)))
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("userSalt", throwPromise(withGetters(createUserSalt)), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
 }
 
 /**
@@ -146,25 +162,22 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("millisNow", withPromise(withGetters(getMillisNow)))
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("userSalt", throwSynchronously(withGetters(createUserSalt)), ["currentUser.username", "secondsNow"])
-  testFactory(factory, next)
+  testFactory(factory, [null, {userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
 }
 
 /**
  * Take a specified factory and create a builder to create userSalt
  */
-function testFactory(factory, next) {
-  // basic request object for testing
-  var request = {
-    currentUser: {
-      username: "jeremy123"
-    }
-  }
-
+function testFactory(factory, expectedOutput, next) {
   // create and run the builder
   var builder = factory.newBuilder(["userSalt"])
   builder.build({req: request}, function (err, data) {
-    console.log("DONE", err, data)
-    if(next) next()
+    try {
+      assert.deepEqual(Array.prototype.slice.call(arguments, 0), expectedOutput)
+    } catch (e) {
+      console.log(e)
+    }
+    if (next) next()
   })
 }
 
@@ -246,11 +259,15 @@ function getCurrentUser(req) {
   return req.currentUser
 }
 
+//save millis off to a variable so that our asserts don't accidentally cross the second boundary
+var millis
+
 /**
  * Get the current time in milliseconds synchronously
  */
 function getMillisNow() {
-  return Date.now()
+  if (!millis) millis = Date.now()
+  return millis
 }
 
 /**
