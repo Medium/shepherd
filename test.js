@@ -85,7 +85,8 @@ function testSynchronous(next) {
   factory.add("secondsNow", getSecondsNow, ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", createUserSalt, ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: expectedSalt}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -102,7 +103,8 @@ function testGetters(next) {
   factory.add("secondsNow", withGetters(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withGetters(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: new BuilderResponse(expectedSalt)}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -117,7 +119,8 @@ function testCallbacks(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: expectedSalt}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -132,7 +135,8 @@ function testPromises(next) {
   factory.add("secondsNow", withPromise(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withPromise(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: expectedSalt}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -148,7 +152,8 @@ function testPromisesAndGetters(next) {
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withPromise(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: new BuilderResponse(expectedSalt)}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -162,6 +167,7 @@ function testThrowCallback(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
+  factory.add("username", 'req.currentUser.username')
   testFactory(factory, [new Error("I'm done here"), null], next)
 }
 
@@ -176,6 +182,7 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwSynchronously(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
+  factory.add("username", 'req.currentUser.username')
   testFactory(factory, [new Error("I'm done here"), null], next)
 }
 
@@ -192,7 +199,8 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwPromise(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
 }
 
 /**
@@ -208,7 +216,8 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwSynchronously(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  testFactory(factory, [null, {userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
+  factory.add("username", 'req.currentUser.username')
+  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
 }
 
 /**
@@ -216,11 +225,10 @@ function testThrowSynchronouslyCallback(next) {
  */
 function testFactory(factory, expectedOutput, next) {
   // create and run the builder
-  var builder = factory.newBuilder(["userSalt"])
+  var builder = factory.newBuilder(["userSalt", "username"])
   builder.build({req: request, d1: '<', d2: '-', d3: '>'}, function (err, data) {
     try {
       assert.deepEqual(Array.prototype.slice.call(arguments, 0), expectedOutput)
-      console.log(data)
     } catch (e) {
       console.log(e)
     }
