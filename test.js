@@ -32,6 +32,8 @@ var testMethods = [
   , testThrowSynchronouslyCallback
   , testThrowPromises
   , testThrowSynchronouslyPromises
+  , testRemapObject
+  , testRemapArray
 ]
 function runNextTest() {
   if (testMethods.length) {
@@ -70,6 +72,91 @@ function createDelimiter(factory) {
   graph.add("finalDelimiter", joiner, ["delimiter1", "delimiter2", "delimiter3"])
   return graph.given("finalDelimiter").then(function (finalDelimiter) {
     return factory.wrapsInputs ? finalDelimiter.get() : finalDelimiter
+  })
+}
+
+/**
+ * uppercase a string
+ *
+ * @param {string} str the string to uppercase
+ * @param {Function} next
+ */
+function upperCase(str, next) {
+  next(null, str.toUpperCase())
+}
+
+/**
+ * lowercase a string
+ *
+ * @param {string} str the string to lowercase
+ * @param {Function} next
+ */
+function lowerCase(str, next) {
+  next(null, str.toLowerCase())
+}
+
+/**
+ * split a string into substrings by spaces
+ *
+ * @param {string} str the string to uppercase
+ * @param {Function} next
+ */
+function split(str, next) {
+  next(null, str.split(' '))
+}
+
+/**
+ * Test remapping the inputs of a node with a deps object
+ *
+ * @param {Function} next
+ */
+function testRemapObject(next) {
+  console.log("testing remap object")
+
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('str-toUpper', upperCase, ['str'])
+  factory.add('str-toLower', lowerCase, ['str'])
+  factory.add('split', split, ['str'])
+
+  factory.provideTo('str-toUpper', {'str': 'name'})
+  factory.provideTo('split', {'str': 'str-toUpper'})
+
+  factory.newBuilder(['split'])
+  .build({name: 'Jeremy Stanley'}, function (err, data) {
+    try {
+      assert.deepEqual(data.split, ['JEREMY', 'STANLEY'])
+    } catch (e) {
+      console.error(e)
+    }
+    next()
+  })
+}
+
+/**
+ * Test remapping the inputs of a node with a new deps array
+ *
+ * @param {Function} next
+ */
+function testRemapArray(next) {
+  console.log("testing remap array")
+  var factory = new asyncBuilder.BuilderFactory()
+
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('str-toUpper', upperCase, ['str'])
+  factory.add('str-toLower', lowerCase, ['str'])
+  factory.add('split', split, ['str'])
+
+  factory.provideTo('str-toLower', ['name'])
+  factory.provideTo('split', ['str-toLower'])
+
+  factory.newBuilder(['split'])
+  .build({name: 'Jeremy Stanley'}, function (err, data) {
+    try {
+      assert.deepEqual(data.split, ['jeremy', 'stanley'])
+    } catch (e) {
+      console.error(e)
+    }
+    next()
   })
 }
 
