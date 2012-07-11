@@ -23,7 +23,8 @@ var expectedSalt = function () {
 }()
 
 var testMethods = [
-    testSynchronous
+    testValue
+  , testSynchronous
   , testGetters
   , testCallbacks
   , testPromises
@@ -103,6 +104,27 @@ function lowerCase(str, next) {
  */
 function split(str, next) {
   next(null, str.split(' '))
+}
+
+/**
+ * Test adding a specific value in the provideTo method
+ *
+ * @param {Function} next
+ */
+function testValue(next) {
+  console.log("testing specific value")
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('str-toUpper', upperCase, ['str'])
+  factory.provideTo('str-toUpper', {str: factory.value('jeremy')})
+  factory.newBuilder('str-toUpper')
+  .build({str: 'jeremys'}, function (err, data) {
+    try {
+      assert.deepEqual(data['str-toUpper'], 'JEREMY')
+    } catch (e) {
+      console.error(e)
+    }
+    next()
+  })
 }
 
 /**
