@@ -23,7 +23,7 @@ var expectedSalt = function () {
 }()
 
 var testMethods = [
-    testValue
+    testLiteral
   , testSynchronous
   , testGetters
   , testCallbacks
@@ -111,11 +111,11 @@ function split(str, next) {
  *
  * @param {Function} next
  */
-function testValue(next) {
-  console.log("testing specific value")
+function testLiteral(next) {
+  console.log("testing literal")
   var factory = new asyncBuilder.BuilderFactory()
   factory.add('str-toUpper', upperCase, ['str'])
-  factory.provideTo('str-toUpper', {str: factory.value('jeremy')})
+  factory.provideTo('str-toUpper', {str: factory.literal('jeremy')})
   factory.newBuilder('str-toUpper')
   .build({str: 'jeremys'}, function (err, data) {
     try {
