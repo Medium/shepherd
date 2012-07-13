@@ -35,11 +35,14 @@ var testMethods = [
   , testThrowSynchronouslyPromises
   , testRemapObject
   , testRemapArray
+  , testMissingNodes
 ]
 function runNextTest() {
   if (testMethods.length) {
     testMethod = testMethods.shift()
-    testMethod(runNextTest)
+    process.nextTick(function () {
+      testMethod(runNextTest)
+    })
   }
 }
 runNextTest()
@@ -104,6 +107,35 @@ function lowerCase(str, next) {
  */
 function split(str, next) {
   next(null, str.split(' '))
+}
+
+/**
+ * join 2 strings with a space in between
+ *
+ * @param {string} strA the first string
+ * @param {string} strB the second string
+ * @param {Function} next
+ */
+function join(strA, strB, next) {
+  next(null, strA + ' ' + strB)
+}
+
+/**
+ * Test running a builder with missing nodes
+ *
+ * @param {Function} next
+ */
+function testMissingNodes(next) {
+  console.log("test missing nodes")
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('toUpper', upperCase, ['str'])
+  factory.add('join', join, ['strA', 'strB'])
+  try {
+    factory.newBuilder('toUpper', 'join').build({}, function (err, data) {})
+  } catch (e) {
+    assert.equal(e.message, "toUpper requires [str]; join requires [strA, strB]")
+    next()
+  }
 }
 
 /**
