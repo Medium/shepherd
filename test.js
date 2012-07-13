@@ -128,10 +128,12 @@ function join(strA, strB, next) {
 function testMissingNodes(next) {
   console.log("test missing nodes")
   var factory = new asyncBuilder.BuilderFactory()
+  factory.strictBuilds()
   factory.add('toUpper', upperCase, ['str'])
   factory.add('join', join, ['strA', 'strB'])
   try {
-    factory.newBuilder('toUpper', 'join').build({}, function (err, data) {})
+    factory.newBuilder('toUpper', 'join')
+    builder.build({}, function (err, data) {})
   } catch (e) {
     assert.equal(e.message, "toUpper requires [str]; join requires [strA, strB]")
     next()
