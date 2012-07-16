@@ -152,7 +152,9 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
 
     // all dependencies have been resolved, retrieve their values
     deps = deps.map(function (dep) {
-      return dep.valueOf()
+      var value = dep.valueOf()
+      if (value.exception) throw value.exception
+      return value
     })
 
     // add a node-style callback to a new promise as the last argument to the handler
