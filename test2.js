@@ -1,4 +1,4 @@
-var asyncBuilder = require("./lib/asyncBuilder")
+var asyncBuilder = require("./lib2/asyncBuilder")
 var BuilderResponse = asyncBuilder.BuilderResponse
 var q = require("q")
 var assert = require("assert")
@@ -25,14 +25,10 @@ var expectedSalt = function () {
 var testMethods = [
     testLiteral
   , testSynchronous
-  , testGetters
   , testCallbacks
   , testPromises
-  , testPromisesAndGetters
   , testThrowCallback
   , testThrowSynchronouslyCallback
-  , testThrowPromises
-  , testThrowSynchronouslyPromises
   , testRemapObject
   , testRemapArray
   , testMissingNodes
@@ -56,27 +52,22 @@ function joinDelimiters(delimiter1, delimiter2, delimiter3) {
 }
 
 function createDelimiter(factory) {
-  var delimiter = singleDelimiter
-  var joiner = joinDelimiters
+  var builder = factory
+    .add('delimiter1', singleDelimiter, ['firstDelimiter'])
+    .add('delimiter2', singleDelimiter, ['secondDelimiter'])
+    .add('delimiter3', singleDelimiter, ['thirdDelimiter'])
+    .add('finalDelimiter', joinDelimiters, ['delimiter1', 'delimiter2', 'delimiter3'])
+    .newBuilder('finalDelimiter')
 
-  if (factory.wrapsInputs) {
-    delimiter = withGetters(delimiter)
-    joiner = withGetters(joiner)
+  return function (firstDelimiter, secondDelimiter, thirdDelimiter, next) {
+    builder.build({
+      firstDelimiter: firstDelimiter,
+      secondDelimiter: secondDelimiter,
+      thirdDelimiter: thirdDelimiter
+    }, function (err, data) {
+      next(err, data.finalDelimiter)
+    })
   }
-
-  if (!factory.usesPromises) {
-    delimiter = withCallback(delimiter)
-    joiner = withCallback(joiner)
-  }
-
-  var graph = factory.newGraph('firstDelimiter', 'secondDelimiter', 'thirdDelimiter')
-  graph.add("delimiter1", delimiter, ['firstDelimiter'])
-  graph.add("delimiter2", delimiter, ['secondDelimiter'])
-  graph.add("delimiter3", delimiter, ['thirdDelimiter'])
-  graph.add("finalDelimiter", joiner, ["delimiter1", "delimiter2", "delimiter3"])
-  return graph.given("finalDelimiter").then(function (finalDelimiter) {
-    return factory.wrapsInputs ? finalDelimiter.get() : finalDelimiter
-  })
 }
 
 /**
@@ -128,12 +119,12 @@ function join(strA, strB, next) {
 function testMissingNodes(next) {
   console.log("test missing nodes")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.strictBuilds()
   factory.add('toUpper', upperCase, ['str'])
   factory.add('join', join, ['strA', 'strB'])
   try {
-    factory.newBuilder('toUpper', 'join')
+    var builder = factory.newBuilder('toUpper', 'join')
     builder.build({}, function (err, data) {})
+    assert.equal(false, true, "Shouldn't have passed this build step")
   } catch (e) {
     assert.equal(e.message, "toUpper requires [str]; join requires [strA, strB]")
     next()
@@ -222,32 +213,13 @@ function testRemapArray(next) {
 function testSynchronous(next) {
   console.log("testing synchronous")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
   factory.add("currentUser", getCurrentUser, ["req"])
   factory.add("millisNow", getMillisNow)
   factory.add("secondsNow", getSecondsNow, ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", createUserSalt, ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
+  .add('username', function (username){return username}, ['req.currentUser.username'])
   testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
-}
-
-/**
- * Test the builder with methods that return synchronously and expect arguments in the form of objects
- * with a get() method
- */
-function testGetters(next) {
-  console.log("testing getters")
-  var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
-  factory.wrapInputs()
-  factory.add("currentUser", withGetters(getCurrentUser), ["req"])
-  factory.add("millisNow", withGetters(getMillisNow))
-  factory.add("secondsNow", withGetters(getSecondsNow), ["millisNow"])
-  factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
-  factory.add("userSalt", withGetters(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
-  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -262,7 +234,7 @@ function testCallbacks(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
+  .add('username', function (username){return username}, ['req.currentUser.username'])
   testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
@@ -272,31 +244,13 @@ function testCallbacks(next) {
 function testPromises(next) {
   console.log("testing promises")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
   factory.add("currentUser", withPromise(getCurrentUser), ["req"])
   factory.add("millisNow", withPromise(getMillisNow))
   factory.add("secondsNow", withPromise(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withPromise(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
+  .add('username', function (username){return username}, ['req.currentUser.username'])
   testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
-}
-
-/**
- * Test the builder with promises & and getters
- */
-function testPromisesAndGetters(next) {
-  console.log("testing promises and getters")
-  var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
-  factory.wrapInputs()
-  factory.add("currentUser", withPromise(withGetters(getCurrentUser)), ["req"])
-  factory.add("millisNow", withPromise(withGetters(getMillisNow)))
-  factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
-  factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
-  factory.add("userSalt", withPromise(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
-  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(expectedSalt)}], next)
 }
 
 /**
@@ -310,7 +264,7 @@ function testThrowCallback(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
+  .add('username', function (username){return username}, ['req.currentUser.username'])
   testFactory(factory, [new Error("I'm done here"), null], next)
 }
 
@@ -325,42 +279,8 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwSynchronously(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
+  .add('username', function (username){return username}, ['req.currentUser.username'])
   testFactory(factory, [new Error("I'm done here"), null], next)
-}
-
-/**
- * Test throwing errors through a promise
- */
- function testThrowPromises(next) {
-  console.log("testing throwing through promises")
-  var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
-  factory.wrapInputs()
-  factory.add("currentUser", withPromise(withGetters(getCurrentUser)), ["req"])
-  factory.add("millisNow", withPromise(withGetters(getMillisNow)))
-  factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
-  factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
-  factory.add("userSalt", throwPromise(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
-  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
-}
-
-/**
- * Test throwing errors through a promise
- */
- function testThrowSynchronouslyPromises(next) {
-  console.log("testing throwing synchronously through promises")
-  var factory = new asyncBuilder.BuilderFactory()
-  factory.usePromises()
-  factory.wrapInputs()
-  factory.add("currentUser", withPromise(withGetters(getCurrentUser)), ["req"])
-  factory.add("millisNow", withPromise(withGetters(getMillisNow)))
-  factory.add("secondsNow", withPromise(withGetters(getSecondsNow)), ["millisNow"])
-  factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
-  factory.add("userSalt", throwSynchronously(withGetters(createUserSalt)), ["currentUser.username", "delimiter", "secondsNow"])
-  factory.add("username", 'req.currentUser.username')
-  testFactory(factory, [null, {username: new BuilderResponse(request.currentUser.username), userSalt: new BuilderResponse(null, new Error("I'm done here"))}], next)
 }
 
 /**
@@ -377,18 +297,6 @@ function testFactory(factory, expectedOutput, next) {
     }
     if (next) next()
   })
-}
-
-/**
- * Wrap a function such that all of it's arguments' get() methods are called
- */
-function withGetters(fn) {
-  return function () {
-    var args = Array.prototype.map.call(arguments, function (arg) {
-      return arg.get()
-    })
-    return fn.apply(null, args)
-  }
 }
 
 /**
