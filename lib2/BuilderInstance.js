@@ -36,7 +36,7 @@ BuilderInstance.prototype.configure = function (opts) {
 
 /**
  * Get a list of all dependencies for this builder instance
- * 
+ *
  * @return {Object} a map of node names to an array of their dependencies
  */
 BuilderInstance.prototype.getDependencies = function () {
@@ -53,7 +53,7 @@ BuilderInstance.prototype.getDependencies = function () {
       })
     }
   }
-  
+
   return deps
 }
 
@@ -144,7 +144,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
   // guarantee that all dependencies are resolved for this node
   var promise = Q.allResolved(node.deps.map(function (dep) {
     return this._resolve(data, dep)
-  }.bind(this)))  
+  }.bind(this)))
   .then(function (deps) {
     if (this._config.trace && node.deps.length) {
       this._trace(data, {node: nodeName, action: 'depsLoaded'})
@@ -153,7 +153,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     // all dependencies have been resolved, retrieve their values
     deps = deps.map(function (dep) {
       var value = dep.valueOf()
-      if (value.exception) throw value.exception
+      if (value && value.exception) throw value.exception
       return value
     })
 
@@ -197,7 +197,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
 BuilderInstance.prototype.build = function (inputData, callback) {
   if (this._config.validateDependencies) this.validateDependencies(Object.keys(inputData))
 
-  // clone the input data to keep it pristine 
+  // clone the input data to keep it pristine
   var data = {}
   for (var key in inputData) {
     data[key] = inputData[key]
