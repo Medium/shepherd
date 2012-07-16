@@ -32,6 +32,7 @@ var testMethods = [
   , testRemapObject
   , testRemapArray
   , testMissingNodes
+  , testScope
 ]
 function runNextTest() {
   if (testMethods.length) {
@@ -109,6 +110,33 @@ function split(str, next) {
  */
 function join(strA, strB, next) {
   next(null, strA + ' ' + strB)
+}
+
+function Scoped(name) {
+  this.name = name
+}
+
+Scoped.prototype.getName = function (lastName) {
+  return this.name + " " + lastName
+}
+
+/**
+ * Test scoping of a handler
+ */
+function testScope(next) {
+  console.log("test scope")
+  var scoped = new Scoped("Jeremy")
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('name', [scoped.getName, scoped, 'Stanley'])
+  try {
+    var builder = factory.newBuilder('name')
+    builder.build({}, function (err, data) {
+      assert.equal(data.name, 'Jeremy Stanley')
+    })
+  } catch (e) {
+    console.error(e)
+    next()
+  }
 }
 
 /**

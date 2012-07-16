@@ -80,12 +80,14 @@ BuilderFactory.prototype.provideTo = function (node, deps) {
       var field = this._nodes[node].deps[i]
       var newDep = deps[field]
       if (newDep) {
+        // if the new dependency is a function, map it as a literal
         if (typeof newDep === 'function') {
           var newName = '_autoAdd_literal_' + (++this._literalCount)
           this.add(newName, newDep)
           newDep = newName
         }
 
+        // remap the dependency
         if (typeof newDep === 'string') {
           this._nodes[node].deps[i] = newDep
         } else {
@@ -105,16 +107,25 @@ BuilderFactory.prototype.provideTo = function (node, deps) {
  * Add a handler
  *
  * @this {BuilderFactory}
- * @param {String} name name of the field to handle
- * @param {Function} fn the function to call for this field
+ * @param {String} nodeName name of the field to handle
+ * @param {Function} handler the function to call for this field
  * @param {Array.<String>} deps fields this field is dependent on
  * @return {BuilderFactory}
  */
-BuilderFactory.prototype.add = function (node, handler, deps) {
-  if (this._config.forceClone) return this.clone().add(node, handler, deps)
+BuilderFactory.prototype.add = function (nodeName, handler, deps) {
+  if (this._config.forceClone) return this.clone().add(nodeName, handler, deps)
 
-  // handler is required
-  if (typeof handler !== 'function') throw new Error('handler for \'' + node + '\' is not a function: ' + JSON.stringify(handler))
+  // node object for referencing this handler
+  var node = {}
+
+  // handler may be an array of function and bind arguments
+  if (Array.isArray(handler)) {
+    if (handler.length === 1) handler = handler[0]
+    else handler = handler[0].bind.apply(handler[0], handler.slice(1)) 
+  }
+
+  // check the handler
+  if (typeof handler !== 'function') throw new Error('handler for \'' + nodeName + '\' is not a function: ' + JSON.stringify(handler))
   
   // if no dependencies, set as empty array
   if (!deps) deps = []
@@ -122,7 +133,7 @@ BuilderFactory.prototype.add = function (node, handler, deps) {
   else if (!Array.isArray(deps)) deps = Array.prototype.slice.call(arguments, 2)
 
   // set up the node
-  this._nodes[node] = {handler: handler, deps: deps}
+  this._nodes[nodeName] = {handler: handler, deps: deps}
 
   return this
 }
