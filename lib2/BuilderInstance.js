@@ -196,7 +196,10 @@ BuilderInstance.prototype.build = function (inputData, callback) {
   if (this._config.validateDependencies) this.validateDependencies(Object.keys(inputData))
 
   // clone the input data to keep it pristine 
-  var data = clone(inputData)
+  var data = {}
+  for (var key in inputData) {
+    data[key] = inputData[key]
+  }
   var startTime
 
   // resolve all needed outputs

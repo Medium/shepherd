@@ -124,6 +124,11 @@ BuilderFactory.prototype.add = function (nodeName, handler, deps) {
     else handler = handler[0].bind.apply(handler[0], handler.slice(1)) 
   }
 
+  // handler is a string, alias instead
+  if (typeof handler === 'string') {
+    return this.add(nodeName, alias, [handler])
+  }
+
   // check the handler
   if (typeof handler !== 'function') throw new Error('handler for \'' + nodeName + '\' is not a function: ' + JSON.stringify(handler))
   
@@ -174,6 +179,13 @@ BuilderFactory.prototype.newBuilders = function (requiredFieldsMap) {
   }
 
   return response
+}
+
+/**
+ * Alias an existing node
+ */
+function alias(node) {
+  return node
 }
 
 module.exports = BuilderFactory
