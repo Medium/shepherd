@@ -81,7 +81,7 @@ BuilderFactory.prototype.provideTo = function (node, deps) {
       var newDep = deps[field]
       if (newDep) {
         // if the new dependency is a function, map it as a literal
-        if (typeof newDep === 'function') {
+        if (Array.isArray(newDep) || typeof newDep === 'function') {
           var newName = '_autoAdd_literal_' + (++this._literalCount)
           this.add(newName, newDep)
           newDep = newName
