@@ -151,11 +151,13 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     }
 
     // all dependencies have been resolved, retrieve their values
-    deps = deps.map(function (dep) {
-      var value = dep.valueOf()
-      if (value && value.exception) throw value.exception
-      return value
-    })
+    for (var i = 0; i < deps.length; i += 1) {
+      deps[i] = deps[i].valueOf()
+      if (deps[i] && deps[i].exception) {
+        this._trace(data, {node: nodeName, action: "failedDueToDependency", dependency: node.deps[i]})
+        throw value.exception
+      }
+    }
 
     // add a node-style callback to a new promise as the last argument to the handler
     var deferred = Q.defer()
