@@ -155,7 +155,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
       deps[i] = deps[i].valueOf()
       if (deps[i] && deps[i].exception) {
         this._trace(data, {node: nodeName, action: "failedDueToDependency", dependency: node.deps[i]})
-        throw value.exception
+        throw deps[i].exception
       }
     }
 
