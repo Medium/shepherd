@@ -24,6 +24,7 @@ var expectedSalt = function () {
 
 var testMethods = [
     testLiteral
+  , testDelay
   , testSynchronous
   , testCallbacks
   , testPromises
@@ -120,6 +121,12 @@ Scoped.prototype.getName = function (lastName) {
   return this.name + " " + lastName
 }
 
+Scoped.prototype.getNameDelayed = function (lastName, next) {
+  setTimeout(function () {
+    next(null, this.getName(lastName))
+  }.bind(this), 5000)
+}
+
 /**
  * Test scoping of a handler
  */
@@ -132,10 +139,33 @@ function testScope(next) {
     var builder = factory.newBuilder('name')
     builder.build({}, function (err, data) {
       assert.equal(data.name, 'Jeremy Stanley')
+      next()
     })
   } catch (e) {
     console.error(e)
-    next()
+  }
+}
+
+/**
+ * Test delaying of a handler
+ */
+function testDelay(next) {
+  console.log("test delay")
+  var scoped = new Scoped("Jeremy")
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add('name', [scoped.getNameDelayed, scoped, 'Stanley'])
+  try {
+    var builder = factory.newBuilder('name')
+    builder.build({}, function (err, data) {
+      try {
+        assert.equal(data.name, 'Jeremy Stanley')
+        next()
+      } catch (e) {
+        console.error(e)
+      }
+    })
+  } catch (e) {
+    console.error(e)
   }
 }
 
