@@ -137,6 +137,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
 
   // start tracing
   var traceInterval
+  var traceIterations = 0
   if (this._config.trace && node.deps.length) {
     this._trace(data, {node: nodeName, action: 'waitingForDeps', deps: node.deps})
   }
@@ -167,6 +168,8 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     // call the handler
     if (this._config.trace) {
       traceInterval = setInterval(function () {
+        traceIterations++
+        if (traceInterval) clearInterval(traceInterval)
         this._trace(data, {node: nodeName, action: "waitingToResolve"})
       }.bind(this), 1000)
       this._trace(data, {node: nodeName, action: 'resolving'})
@@ -181,11 +184,11 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
 
   if (this._config.trace) {
     promise.then(function (result) {
-      clearInterval(traceInterval)
+      if (traceInterval) clearInterval(traceInterval)
       this._trace(data, {node: nodeName, action: 'resolved'})
     }.bind(this))
     promise.fail(function (err) {
-      clearInterval(traceInterval)
+      if (traceInterval) clearInterval(traceInterval)
       this._trace(data, {node: nodeName, action: 'failed'})
     }.bind(this))
   }
