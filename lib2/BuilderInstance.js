@@ -168,7 +168,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     // call the handler
     if (this._config.trace) {
       traceInterval = setInterval(function () {
-        if (traceIterations++ >= 30 && traceInterval) clearInterval(traceInterval)
+        if (++traceIterations >= 30 && traceInterval) clearInterval(traceInterval)
         this._trace(data, {node: nodeName, action: "waitingToResolve"})
       }.bind(this), 1000)
       this._trace(data, {node: nodeName, action: 'resolving'})
