@@ -91,11 +91,10 @@ BuilderInstance.prototype.validateDependencies = function (inputs) {
  */
 BuilderInstance.prototype._trace = function (data, msg) {
   if (!data.traceId) {
-    data.startTime = microtime.now()
     data.traceId = Date.now() + '.' + Math.floor(Math.random() * 10000)
   }
   msg.traceId = data.traceId
-  msg.timestamp = microtime.now() - data.startTime
+  msg.timestamp = microtime.now()
   process.nextTick(function () {
     console.log(JSON.stringify(msg))
   })
