@@ -245,8 +245,6 @@ function testRemapObject(next) {
 function testRemapArray(next) {
   console.log("testing remap array")
   var factory = new asyncBuilder.BuilderFactory()
-
-  var factory = new asyncBuilder.BuilderFactory()
   factory.add('str-toUpper', upperCase, ['str'])
   factory.add('str-toLower', lowerCase, ['str'])
   factory.add('split', split, ['str'])

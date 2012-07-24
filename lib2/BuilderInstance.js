@@ -1,6 +1,6 @@
 var clone = require('./clone')
-var microtime = require('microtime')
 var Q = require('q')
+var microtime = require('microtime')
 
 /**
  * Create a new instance of BuilderInstance
@@ -9,13 +9,14 @@ var Q = require('q')
  * @param {Object} nodes a map of node names to handlers and dependencies
  * @param {Array.<String>} outputs a list of fields that are required to return
  */
-function BuilderInstance(nodes, outputs) {
+function BuilderInstance(nodes, outputs, eventHandlers) {
   this._nodes = nodes
   this._outputs = outputs
-  this._config = {
-    validateDependencies: true,
-    trace: false
-  }
+  this._config = {}
+  this.configure({
+      validateDependencies: true
+    , handlers: eventHandlers
+  })
 }
 
 /**
@@ -31,6 +32,10 @@ BuilderInstance.prototype.configure = function (opts) {
   for (var key in opts) {
     this._config[key] = opts[key]
   }
+
+  if (!this._config.handlers.warn) this._config.handlers.warn = this._config.handlers.debug
+  if (!this._config.handlers.error) this._config.handlers.error = this._config.handlers.warn
+
   return this
 }
 
@@ -86,18 +91,9 @@ BuilderInstance.prototype.validateDependencies = function (inputs) {
   }
 }
 
-/**
- * Trace out a debug msg to the logs
- */
-BuilderInstance.prototype._trace = function (data, msg) {
-  if (!data.traceId) {
-    data.traceId = Date.now() + '.' + Math.floor(Math.random() * 10000)
-  }
-  msg.traceId = data.traceId
-  msg.timestamp = microtime.now()
-  process.nextTick(function () {
-    console.log(JSON.stringify(msg))
-  })
+BuilderInstance.prototype._trace = function (handlerType, msg) {
+  var handler = this._config.handlers[handlerType]
+  if (handler) process.nextTick(handler.bind(null, msg))
 }
 
 /**
@@ -124,9 +120,7 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
 
   // the field already exists in data, return it
   if (data[nodeName]) {
-    if (this._config.trace) {
-      this._trace(data, {node: nodeName, action: 'loadedFromCache'})
-    }
+    this._trace('debug', {traceId: data._traceId, node: nodeName, action: 'loadedFromCache'})
     return Q.resolve(data[nodeName])
   }
 
@@ -137,8 +131,9 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
   // start tracing
   var traceInterval
   var traceIterations = 0
-  if (this._config.trace && node.deps.length) {
-    this._trace(data, {node: nodeName, action: 'waitingForDeps', deps: node.deps})
+  var startTime
+  if (node.deps.length) {
+    this._trace('debug', {traceId: data._traceId, node: nodeName, action: 'waitingForDeps', deps: node.deps})
   }
 
   // guarantee that all dependencies are resolved for this node
@@ -146,15 +141,15 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     return this._resolve(data, dep)
   }.bind(this)))
   .then(function (deps) {
-    if (this._config.trace && node.deps.length) {
-      this._trace(data, {node: nodeName, action: 'depsLoaded'})
+    if (node.deps.length) {
+      this._trace('debug', {traceId: data._traceId, node: nodeName, action: 'depsLoaded'})
     }
 
     // all dependencies have been resolved, retrieve their values
     for (var i = 0; i < deps.length; i += 1) {
       deps[i] = deps[i].valueOf()
       if (deps[i] && deps[i].exception) {
-        this._trace(data, {node: nodeName, action: "failedDueToDependency", dependency: node.deps[i]})
+        this._trace('error', {traceId: data._traceId, node: nodeName, action: "failedDueToDependency", dependency: node.deps[i]})
         throw deps[i].exception
       }
     }
@@ -164,14 +159,15 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     var deferredPromise = deferred.promise
     deps.push(deferred.makeNodeResolver())
 
-    // call the handler
-    if (this._config.trace) {
+    // only set up the timer to watch for slow requests if we have a warn handler
+    if (this._config.handlers.warn) {
       traceInterval = setInterval(function () {
         if (++traceIterations >= 30 && traceInterval) clearInterval(traceInterval)
-        this._trace(data, {node: nodeName, action: "waitingToResolve"})
+        this._trace('warn', {traceId: data._traceId, node: nodeName, action: "waitingToResolve"})
       }.bind(this), 1000)
-      this._trace(data, {node: nodeName, action: 'resolving'})
+      this._trace('debug', {traceId: data._traceId, node: nodeName, action: 'resolving'})
     }
+    if (this._config.handlers.timing) startTime = microtime.now()
     var fnResult = node.handler.apply(null, deps)
 
     // if the handler returned an undefined, expect that the node-style callback will
@@ -180,16 +176,18 @@ BuilderInstance.prototype._resolve = function (data, nodeName) {
     return typeof fnResult !== 'undefined' ? fnResult : deferredPromise
   }.bind(this))
 
-  if (this._config.trace) {
-    promise.then(function (result) {
-      if (traceInterval) clearInterval(traceInterval)
-      this._trace(data, {node: nodeName, action: 'resolved'})
-    }.bind(this))
-    promise.fail(function (err) {
-      if (traceInterval) clearInterval(traceInterval)
-      this._trace(data, {node: nodeName, action: 'failed'})
-    }.bind(this))
-  }
+  promise.then(function (result) {
+    if (traceInterval) clearInterval(traceInterval)
+    this._trace('debug', {traceId: data._traceId, node: nodeName, action: 'resolved'})
+    if (this._config.handlers.increment) this._config.handlers.increment('node.' + nodeName + '.success')
+    if (this._config.handlers.timing) this._config.handlers.timing('node.' + nodeName, microtime.now() - startTime)
+  }.bind(this))
+  promise.fail(function (err) {
+    if (traceInterval) clearInterval(traceInterval)
+    this._trace('error', {traceId: data._traceId, node: nodeName, action: 'failed'})
+    if (this._config.handlers.increment) this._config.handlers.increment('node.' + nodeName + '.failure')
+    if (this._config.handlers.timing) this._config.handlers.timing('node.' + nodeName, microtime.now() - startTime)
+  }.bind(this))
 
   return data[nodeName] = promise
 }
@@ -210,20 +208,19 @@ BuilderInstance.prototype.build = function (inputData, callback) {
   for (var key in inputData) {
     data[key] = inputData[key]
   }
+  if (!data._traceId) data._traceId = Date.now() + '.' + Math.floor(Math.random() * 10000)
   var startTime
 
   // resolve all needed outputs
-  if (this._config.trace) {
-    startTime = microtime.now()
-    this._trace(data, {action: 'starting build()', outputs: this._outputs})
-  }
+  if (this._config.handlers.timing) startTime = microtime.now()
+  this._trace('debug', {traceId: data._traceId, action: 'starting build()', outputs: this._outputs})
+
   var promise = Q.allResolved(this._outputs.map(function (output) {
     return this._resolve(data, output)
   }.bind(this)))
   .then(function (promises) {
-    if (this._config.trace) {
-      this._trace(data, {action: 'finished build()', outputs: this._outputs})
-    }
+    this._trace('debug', {traceId: data._traceId, action: 'finished build()', outputs: this._outputs})
+    if (this._config.handlers.timing) this._config.handlers.timing('build.' + this._outputs ? this._outputs.join(',') : 'EMPTY', microtime.now() - startTime)
 
     // convert our promises to a map *or* throw an error if we have one
     var response = {}

@@ -71,7 +71,7 @@ BuilderFactory.prototype.provideTo = function (node, deps) {
   if (this._config.forceClone) return this.clone().provideTo(node, deps)
 
   if (!this._nodes[node]) throw new Error('node \'' + node + '\' not found')
-  
+
   // if provided with an array of deps, just override the existing deps
   if (Array.isArray(deps)) this._nodes[node].deps = deps
   else if (typeof deps === 'object') {
@@ -121,7 +121,7 @@ BuilderFactory.prototype.add = function (nodeName, handler, deps) {
   // handler may be an array of function and bind arguments
   if (Array.isArray(handler)) {
     if (handler.length === 1) handler = handler[0]
-    else handler = handler[0].bind.apply(handler[0], handler.slice(1)) 
+    else handler = handler[0].bind.apply(handler[0], handler.slice(1))
   }
 
   // handler is a string, alias instead
@@ -131,7 +131,7 @@ BuilderFactory.prototype.add = function (nodeName, handler, deps) {
 
   // check the handler
   if (typeof handler !== 'function') throw new Error('handler for \'' + nodeName + '\' is not a function: ' + JSON.stringify(handler))
-  
+
   // if no dependencies, set as empty array
   if (!deps) deps = []
   // if dependencies aren't an array, coerce all args after handler into an array
@@ -153,7 +153,8 @@ BuilderFactory.prototype.add = function (nodeName, handler, deps) {
  */
 BuilderFactory.prototype.newBuilder = function (outputs) {
   if (!Array.isArray(outputs)) outputs = Array.prototype.slice.call(arguments, 0)
-  var builder =  new BuilderInstance(clone(this._nodes), outputs)
+  var handlers = this._config.handlers ? clone(this._config.handlers) : {}
+  var builder =  new BuilderInstance(clone(this._nodes), outputs, handlers)
 
   if (this._config.inputs) builder.validateDependencies(this._config.inputs)
 
