@@ -1,7 +1,7 @@
 {
     "name": "asyncBuilder"
   , "description": "handle async dependency loading"
-  , "version": "0.2.12"
+  , "version": "0.2.13"
   , "homepage": "https://github.com/Obvious/asyncBuilder"
   , "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)"
@@ -10,7 +10,7 @@
 
     ]
   , "keywords": ["asyncBuilder"]
-  , "main": "lib2/asyncBuilder.js"
+  , "main": "lib/asyncBuilder.js"
   , "repository": {
       "type": "git"
     , "url": "https://github.com/Obvious/asyncBuilder.git"
