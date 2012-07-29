@@ -2,7 +2,7 @@ var asyncBuilder = require("./lib/asyncBuilder")
 var microtime = require('microtime')
 
 var nodeA = function (next) {
-  next(null, 'a')
+  next(null, {'a': 'a'})
 }
 
 var nodeB = function (next) {
@@ -18,7 +18,7 @@ factory.add("a", nodeA)
 factory.add("b", nodeB)
 factory.add("c", nodeC)
 
-var builder = factory.newBuilder('a', 'b', 'c')
+var builder = factory.newBuilder('a.a', 'b', 'c')
 builder.configure({
   validateDependencies: false
 })
