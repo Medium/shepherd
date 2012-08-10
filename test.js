@@ -419,7 +419,7 @@ function throwSynchronously(fn) {
  * of required fields to resolve this node
  */
 function getCurrentUser(req, requiredFields) {
-  if (!requiredFields || requiredFields.indexOf('*') !== -1) return req.currentUser
+  if (!requiredFields || requiredFields === '*') return req.currentUser
   var returnObj = {}
   for (var i = 0; i < requiredFields.length; i += 1) {
     returnObj[requiredFields[i]] = req.currentUser[requiredFields[i]]
