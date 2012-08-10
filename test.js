@@ -275,7 +275,7 @@ function testSynchronous(next) {
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", createUserSalt, ["currentUser.username", "delimiter", "secondsNow"])
   .add('username', function (username){return username}, ['req.currentUser.username'])
-  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
+  testFactory(factory, [undefined, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -291,7 +291,7 @@ function testCallbacks(next) {
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
   .add('username', function (username){return username}, ['req.currentUser.username'])
-  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
+  testFactory(factory, [undefined, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -306,7 +306,7 @@ function testPromises(next) {
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", withPromise(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
   .add('username', function (username){return username}, ['req.currentUser.username'])
-  testFactory(factory, [null, {username: request.currentUser.username, userSalt: expectedSalt}], next)
+  testFactory(factory, [undefined, {username: request.currentUser.username, userSalt: expectedSalt}], next)
 }
 
 /**
@@ -321,7 +321,7 @@ function testThrowCallback(next) {
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwCallback(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
   .add('username', function (username){return username}, ['req.currentUser.username'])
-  testFactory(factory, [new Error("I'm done here"), null], next)
+  testFactory(factory, [new Error("I'm done here")], next)
 }
 
 /**
@@ -336,7 +336,7 @@ function testThrowSynchronouslyCallback(next) {
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
   factory.add("userSalt", throwSynchronously(createUserSalt), ["currentUser.username", "delimiter", "secondsNow"])
   .add('username', function (username){return username}, ['req.currentUser.username'])
-  testFactory(factory, [new Error("I'm done here"), null], next)
+  testFactory(factory, [new Error("I'm done here")], next)
 }
 
 /**
