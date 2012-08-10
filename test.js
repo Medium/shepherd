@@ -124,7 +124,7 @@ Scoped.prototype.getName = function (lastName) {
 Scoped.prototype.getNameDelayed = function (lastName, next) {
   setTimeout(function () {
     next(null, this.getName(lastName))
-  }.bind(this), 5000)
+  }.bind(this), 1000)
 }
 
 /**
@@ -269,7 +269,7 @@ function testRemapArray(next) {
 function testSynchronous(next) {
   console.log("testing synchronous")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.add("currentUser", getCurrentUser, ["req"])
+  factory.add("currentUser", getCurrentUser, ["req", '_requiredFields'])
   factory.add("millisNow", getMillisNow)
   factory.add("secondsNow", getSecondsNow, ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
@@ -285,7 +285,7 @@ function testSynchronous(next) {
 function testCallbacks(next) {
   console.log("testing callbacks")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.add("currentUser", withCallback(getCurrentUser), ["req"])
+  factory.add("currentUser", withCallback(getCurrentUser), ["req", '_requiredFields'])
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
@@ -300,7 +300,7 @@ function testCallbacks(next) {
 function testPromises(next) {
   console.log("testing promises")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.add("currentUser", withPromise(getCurrentUser), ["req"])
+  factory.add("currentUser", withPromise(getCurrentUser), ["req", '_requiredFields'])
   factory.add("millisNow", withPromise(getMillisNow))
   factory.add("secondsNow", withPromise(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
@@ -315,7 +315,7 @@ function testPromises(next) {
 function testThrowCallback(next) {
   console.log("testing throwing through callbacks")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.add("currentUser", withCallback(getCurrentUser), ["req"])
+  factory.add("currentUser", withCallback(getCurrentUser), ["req", '_requiredFields'])
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
@@ -330,7 +330,7 @@ function testThrowCallback(next) {
 function testThrowSynchronouslyCallback(next) {
   console.log("testing throwing synchronously through callbacks")
   var factory = new asyncBuilder.BuilderFactory()
-  factory.add("currentUser", withCallback(getCurrentUser), ["req"])
+  factory.add("currentUser", withCallback(getCurrentUser), ["req", '_requiredFields'])
   factory.add("millisNow", withCallback(getMillisNow))
   factory.add("secondsNow", withCallback(getSecondsNow), ["millisNow"])
   factory.add("delimiter", createDelimiter(factory), ['d1', 'd2', 'd3'])
@@ -415,10 +415,16 @@ function throwSynchronously(fn) {
  }
 
 /**
- * Retrieve the current user from the request object synchronously
+ * Retrieve the current user from the request object synchronously. Receives the list
+ * of required fields to resolve this node
  */
-function getCurrentUser(req) {
-  return req.currentUser
+function getCurrentUser(req, requiredFields) {
+  if (!requiredFields || requiredFields === '*') return req.currentUser
+  var returnObj = {}
+  for (var i = 0; i < requiredFields.length; i += 1) {
+    returnObj[requiredFields[i]] = req.currentUser[requiredFields[i]]
+  }
+  return returnObj
 }
 
 //save millis off to a variable so that our asserts don't accidentally cross the second boundary
