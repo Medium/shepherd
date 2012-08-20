@@ -24,6 +24,7 @@ var expectedSalt = function () {
 
 var testMethods = [
     testLiteral
+  , testSilentDependency
   , testDelay
   , testSynchronous
   , testCallbacks
@@ -35,6 +36,7 @@ var testMethods = [
   , testMissingNodes
   , testScope
 ]
+
 function runNextTest() {
   if (testMethods.length) {
     testMethod = testMethods.shift()
@@ -187,6 +189,49 @@ function testMissingNodes(next) {
     assert.equal(e.message, "toUpper requires [str]; join requires [strA, strB]")
     next()
   }
+}
+
+/**
+ * Test silent dependencies
+ *
+ * @param {Function} next
+ */
+function testSilentDependency(next) {
+  console.log("test silent dependencies")
+  var output = ""
+  /**
+   * Write a string out and return
+   *
+   * @param {string}
+   * @return {boolean}
+   */
+  var echoer = function (str) {
+    var args = Array.prototype.slice.call(arguments, 0)
+    args.pop()
+    output += args.join('')
+    return true
+  }
+
+  var factory = new asyncBuilder.BuilderFactory()
+  factory.add("five", echoer.bind(null, "5"))
+  factory.add("four", echoer.bind(null, "4"))
+  factory.add("three", echoer.bind(null, "3"))
+  factory.add("two", echoer.bind(null, "2"))
+  factory.add("one", echoer.bind(null, "1"))
+  .provideTo('five', {'!': 'four'})
+  .provideTo('four', {'!': ['three', 'two']})
+  .provideTo('three', {'!': 'two'})
+  .provideTo('two', {'!': ['one']})
+  factory.newBuilder('!five')
+  .build({}, function (err, data) {
+    try {
+      assert.equal(output, '12345')
+      assert.equal(data.hasOwnProperty('!five'), false)
+    } catch (e) {
+      console.error(e)
+    }
+    next()
+  })
 }
 
 /**
