@@ -1,7 +1,7 @@
 {
     "name": "asyncBuilder"
   , "description": "handle async dependency loading"
-  , "version": "0.2.16"
+  , "version": "0.2.20"
   , "homepage": "https://github.com/Obvious/asyncBuilder"
   , "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)"
@@ -17,6 +17,6 @@
   }
   , "dependencies": {
     "microtime": "0.3.1",
-    "q": "0.8.5"
+    "kew": "0.0.4"
   }
 }

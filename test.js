@@ -1,6 +1,6 @@
 var asyncBuilder = require("./lib/asyncBuilder")
 var BuilderResponse = asyncBuilder.BuilderResponse
-var q = require("q")
+var q = require("kew")
 var assert = require("assert")
 
 process.on('uncaughtException', function(e) {
@@ -195,7 +195,6 @@ function testMissingNodes(next) {
  * @param {Function} next
  */
 function testLiteral(next) {
-  console.log("testing literal")
   var factory = new asyncBuilder.BuilderFactory()
   factory.add('str-toUpper', upperCase, ['str'])
   factory.provideTo('str-toUpper', {str: factory.literal('jeremy')})
