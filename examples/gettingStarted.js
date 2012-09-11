@@ -1,3 +1,4 @@
+// Copyright 2012 The Obvious Corporation.
 var asyncBuilder = require('../lib/asyncBuilder')
 
 // To get started with **asyncBuilder**, you need to create a `Graph`.

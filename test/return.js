@@ -1,3 +1,4 @@
+// Copyright 2012 The Obvious Corporation.
 var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
