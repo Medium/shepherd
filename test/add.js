@@ -510,4 +510,69 @@ tester.testRequiredFieldEntireObject = function (test) {
     .end()
 }
 
+// node should be uncacheable
+tester.testDisablingCache = function (test) {
+  var count = 0
+  function incrementCount() {
+    return ++count
+  }
+  this.graph.add('count-incremented', incrementCount)
+    .disableCache()
+
+  this.graph.newAsyncBuilder()
+    .builds({'count1': 'count-incremented'})
+    .builds({'count2': 'count-incremented'})
+    .builds({'count3': 'count-incremented'})
+    .builds({'count4': 'count-incremented'})
+    .builds({'count5': 'count-incremented'})
+    .run({}, function (err, result) {
+      test.equal(err, undefined, 'Error should be undefined')
+      test.equal(count, 5, 'Response should be returned through callback')
+      test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 2 + 3 + 4 + 5, 'Response should be returned through callback')
+    })
+    .fail(function (err) {
+      test.equal(true, false, 'Error handler in promise should not be called')
+    })
+    .then(function (result) {
+      test.equal(count, 5, 'Response should be returned through promise')
+      test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 2 + 3 + 4 + 5, 'Response should be returned through promise')
+    })
+    .then(function () {
+      test.done()
+    })
+    .end()
+}
+
+// node should be cacheable
+tester.testEnablingCache = function (test) {
+  var count = 0
+  function incrementCount() {
+    return ++count
+  }
+  this.graph.add('count-incremented', incrementCount)
+
+  this.graph.newAsyncBuilder()
+    .builds({'count1': 'count-incremented'})
+    .builds({'count2': 'count-incremented'})
+    .builds({'count3': 'count-incremented'})
+    .builds({'count4': 'count-incremented'})
+    .builds({'count5': 'count-incremented'})
+    .run({}, function (err, result) {
+      test.equal(err, undefined, 'Error should be undefined')
+      test.equal(count, 1, 'Response should be returned through callback')
+      test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 1 + 1 + 1 + 1, 'Response should be returned through callback')
+    })
+    .fail(function (err) {
+      test.equal(true, false, 'Error handler in promise should not be called')
+    })
+    .then(function (result) {
+      test.equal(count, 1, 'Response should be returned through promise')
+      test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 1 + 1 + 1 + 1, 'Response should be returned through promise')
+    })
+    .then(function () {
+      test.done()
+    })
+    .end()
+}
+
 module.exports = testCase(tester)
