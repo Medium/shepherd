@@ -1,110 +1,69 @@
-asyncBuilder: to build objects… asynchronously
+asyncBuilder: asynchronous dependency injection and more!
 ==================================
 
-Dealing with nested asynchronous javascript is little fun and is virtually impossible to optimize by hand with any reasonably complicated block of code. Nested sets of functions will run at the speed of their slowest calls combined, regardless of what the actual dependency tree may look like. This little tool is built to help optimize these paths and to give some insight into what's going on.
-
-Setting up and using a builder involves the following 3 steps:
-
-Create a BuilderFactory
+Getting started
 -------
 
-A `BuilderFactory` is used to create a map of functions that produce output and receive a given set of inputs. The `add` function may be called to add handlers to the BuilderFactory with a name, function, and list of inputs into the function (from other handlers' output or data passed into `build()` of the `BuilderInstance`).
+To get started with **asyncBuilder**, you need to create a `Graph`. A `Graph` is a registry of all of the things you want to be able to do (units of work). First, instantiate the Graph:
 
 ```javascript
-var builderFactory = new require("asyncBuilder").BuilderFactory
+var graph = new require("asyncBuilder").Graph
+```
 
-builderFactory
-  .add("firstName", getFirstName, ["user"])
-  .add("lastName", getLastName, ["user"])
-  .add("fullName", getFullName, ["firstName", "lastName"])
+Next, you need to add some nodes to the `Graph` which perform said units of work. Let's add 2 nodes to the Graph:
 
-function getFirstName(user, next) {
-  if (!user) return next(new Error("User does not exist"))
-  next(null, user.firstName)
+```javascript
+// create a node which returns the current timestamp in millis
+graph.add('timestamp-nowMillis', Date.now)
+
+// create a node which will uppercase a string
+function toUpper(str) {
+  return str.toUpperCase()
 }
-
-function getLastName(user, next) {
-  if (!user) return next(new Error("User does not exist"))
-  next(null, user.lastName)
-}
-
-function getFullName(firstName, lastName, next) {
-  next(null, firstName + ' ' + lastName)
-}
+graph.add('str-toUpper', toUpper, ['str'])
 ```
 
-As a note: any errors passed into the first parameter of `next` for a given handler will end the execution of the current `build()` call (with the exception of any calls in progress which will silently be ignored) and will bubble up to the callback specified to the `build` step.
-
-You may also provide the name of one handler as the function for another if you wish to provide another accessor:
+Now that you have a `Graph` of things that can be done, you need to create a `Builder` which will connect those different pieces together to produce a desired result. In this case we'll create a `Builder` which will uppercase an input string and return the current timestamp in millis:
 
 ```javascript
-builderFactory
-  .add("shortName", "firstName")
+var builder = graph.newAsyncBuilder()
+  .builds('str-toUpper')
+  .builds('timestamp-nowMillis')
 ```
 
-`BuilderFactory` instances may be cloned as a method of extending them without overriding (or adding to) the handlers on the original factory:
+Finally, you can run the `Builder` with a given set of inputs and it will optimally run through the units of work:
 
 ```javascript
-var newBuilderFactory = builderFactory
-  .clone()
-  .add("fullName", getAbbreviatedName, ["firstName", "lastName"])
-  .add("shortName", "lastName")
-```
-
-Create a `BuilderInstance`
--------
-
-The `BuilderFactory` can create `BuilderInstance` objects via the `newBuilder` method. Each `BuilderInstance` will have a code path optimized for it's specific set of required output fields. Only the code needed to fulfill a given instance's outputs will ever be ran by a given `BuilderInstance`.
-
-```javascript
-var myBuilder = builderFactory.newBuilder(["fullName", "shortName"])
-```
-
-Build your object
--------
-
-Your `BuilderInstance` can now be used to asynchronously generate output via the `build` method.
-
-```javascript
-myBuilder.build({user: {firstName: "Jeremy", lastName: "Stanley"}}, function (err, data) {
-  //data.fullName and data.shortName should both be present
+builder.run({str: "Hello"}, function (err, data) {
+  // data['str-toUpper'] should be HELLO
+  // data['timestamp-nowMillis'] should be the current timestamp in millis
 })
 ```
 
-If you have a need to further inspect what's happening with the asyncBuilder, a utility method `trace()` has been exposed on the `BuilderInstance` and will show timing information and execution steps for a given `build()` call:
+And that's the simple flow through **asyncBuilder**, though there's a lot of additional functionality listed below.
 
-```javascript
-myBuilder
-  .trace()
-  .build({user: {firstName: "Jeremy", lastName: "Stanley"}}, function (err, data) {
-  //data.fullName and data.shortName should both be present
-})
-```
-
-Contributing
-------------
-
-Questions, comments, bug reports, and pull requests are all welcome.
-Submit them at [the project on GitHub](https://github.com/Obvious/asyncBuilder/).
-
-Bug reports that include steps-to-reproduce (including code) are the
-best. Even better, make them in the form of pull requests that update
-the test suite. Thanks!
-
-
-Author
-------
-
-[Jeremy Stanley](https://github.com/azulus)
-supported by
-[The Obvious Corporation](http://obvious.com/).
-
-
-License
+What is the Graph really?
 -------
 
-Copyright 2012 [The Obvious Corporation](http://obvious.com/).
+The `Graph` in asyncBuilder is the place where you put all the things your application is able to do. Before you add any nodes to a `Graph`, you'll need to make sure to instantiate it first:
 
-Licensed under the Apache License, Version 2.0.
-See the top-level file `LICENSE.txt` and
-(http://www.apache.org/licenses/LICENSE-2.0).
+```javascript
+var graph = new require("asyncBuilder").Graph
+```
+
+Adding nodes to the Graph
+-------
+
+Nodes are the fundamental unit of work in a `Graph`.
+
+Building nodes
+-------
+
+Running the Builder
+-------
+
+Utility Nodes
+-------
+
+Utility Methods
+-------
