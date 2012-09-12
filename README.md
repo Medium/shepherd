@@ -1,6 +1,8 @@
 asyncBuilder: asynchronous dependency injection and more!
 ==================================
 
+**asyncBuilder** is dependency injection via a `Graph` of dependencies and a `Builder` which is used to define which of those dependencies you need at any given point in time. Dealing with nested functions (in the best of cases) becomes hard to optimize when you have varied dependencies and **asyncBuilder** is here to allieviate that pain while abstracting away the complexity of the underlying `Graph` and allowing for easily testable bits of code.
+
 Getting started
 -------
 
