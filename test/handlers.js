@@ -43,7 +43,7 @@ tester.testPre = function (test) {
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
-    test.equal(data['preprocessed'], 'hello?!hello?!', "Output string should be hello!hello!")
+    test.equal(data['preprocessed'], 'hello?!hello?!', "Output string should be hello?!hello?!")
     test.done()
   })
   .end()
@@ -81,7 +81,7 @@ tester.testPost = function (test) {
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
-    test.equal(data['postprocessed'], 'hellohello?!', "Output string should be hello!hello!")
+    test.equal(data['postprocessed'], 'hellohello?!', "Output string should be hellohello?!")
     test.done()
   })
   .end()
@@ -133,7 +133,7 @@ tester.testMixed = function (test) {
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
-    test.equal(data['processed'], '<h3>"hello"</h3><h3>"hello"</h3>?!', "Output string should be hello!hello!")
+    test.equal(data['processed'], '<h3>"hello"</h3><h3>"hello"</h3>?!', "Output string should be <h3>\"hello\"</h3><h3>\"hello\"</h3>?!")
     test.done()
   })
   .end()
