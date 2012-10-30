@@ -1,7 +1,7 @@
 {
     "name": "asyncBuilder"
   , "description": "handle async dependency loading"
-  , "version": "1.0.7"
+  , "version": "1.0.8"
   , "homepage": "https://github.com/Obvious/asyncBuilder"
   , "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)",
