@@ -24,6 +24,6 @@
         "nodeunit": "0.7.4"
     }
   , "scripts": {
-      "test": "nodeunit test"
+      "test": "./node_modules/nodeunit/bin/nodeunit test"
     }
 }
