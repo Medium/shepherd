@@ -350,7 +350,7 @@ graph.add('user-deleteEmail', graph.deleter('email'), ['user'])
 ```
 
 ### Graph#subgraph()
-`Graph#subgraph()` returns a function which will always return the first parameter passed into it, this is useful for created a "subgraph" within a `Graph` which doesn't contain any new functions but may coordinate complex operations:
+`Graph#subgraph()` returns a function which will always return the last non-callback parameter passed into it, this is useful for created a "subgraph" within a `Graph` which doesn't contain any new functions but may coordinate complex operations:
 
 ```javascript
 graph.add('user-updateEmail', graph.subgraph)
