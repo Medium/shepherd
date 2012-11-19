@@ -220,4 +220,46 @@ tester.testSubgraph = function (test) {
     .end()
 }
 
+// adding subgraph w/ wildcard args
+tester.testSubgraphWildcard = function (test) {
+  var firstName = 'Jeremy'
+  var lastName = 'Stanley'
+  var newLastName = 'Yelnats'
+
+  // add graph node which joins 2 strings
+  this.graph.add('str-joined', function (first, second) {
+    return first + ' ' + second
+  }, ['first', 'second'])
+
+  // add graph node which takes in a first and last name then calls the string joiner with them
+  this.graph.add('fullName', this.graph.subgraph)
+    .args('!firstName', '!lastName')
+    .builds('str-joined')
+      .using({first: 'args.firstName'}, {second: 'args.lastName'})
+
+  this.graph.add('fullName-overrides', this.graph.subgraph)
+    .args('firstName', 'lastName')
+    .builds('fullName')
+      .using('args.*', {lastName: this.graph.literal(newLastName)})
+
+  this.graph.newAsyncBuilder()
+    .builds('fullName-overrides')
+      .using({firstName: 'fname'}, {lastName: 'lname'})
+    .run({fname: firstName, lname: lastName}, function (err, result) {
+      test.equal(err, undefined, 'Error should be undefined')
+      test.equal(result['fullName-overrides'], firstName + ' ' + newLastName, 'Response should be returned through callback')
+    })
+    .fail(function (err) {
+      console.error(err)
+      test.equal(true, false, 'Error handler in promise should not be called')
+    })
+    .then(function (result) {
+      test.equal(result['fullName-overrides'], firstName + ' ' + newLastName, 'Response should be returned through promise')
+    })
+    .then(function () {
+      test.done()
+    })
+    .end()
+}
+
 module.exports = testCase(tester)
