@@ -92,7 +92,7 @@ tester.testErrorViaPromise = function (test) {
     .end()
 }
 
-// errors should return with _graphInfo field
+// errors should return with graphInfo field
 tester.testThrowWithGraphInfo = function (test) {
   // add a node which throws an error
   this.graph.add('throws', function (next) {
@@ -111,7 +111,7 @@ tester.testThrowWithGraphInfo = function (test) {
   this.graph.newAsyncBuilder('builtToFail')
     .builds('third')
     .run({}, function (err, result) {
-      var graphInfo = err._graphInfo
+      var graphInfo = err.graphInfo
       test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
 
       var failureNodes = graphInfo.failureNodeChain
@@ -124,7 +124,7 @@ tester.testThrowWithGraphInfo = function (test) {
       test.equal(result, undefined, 'Result should not be returned through promise')
     })
     .fail(function (err) {
-      var graphInfo = err._graphInfo
+      var graphInfo = err.graphInfo
       test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
 
       var failureNodes = graphInfo.failureNodeChain
