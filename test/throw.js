@@ -92,4 +92,51 @@ tester.testErrorViaPromise = function (test) {
     .end()
 }
 
+// errors should return with graphInfo field
+tester.testThrowWithGraphInfo = function (test) {
+  // add a node which throws an error
+  this.graph.add('throws', function (next) {
+    throw new Error('Threw an error')
+  })
+
+  this.graph.add('first', this.graph.subgraph)
+    .builds('throws')
+
+  this.graph.add('second', this.graph.subgraph)
+    .builds('first')
+
+  this.graph.add('third', this.graph.subgraph)
+    .builds('second')
+
+  this.graph.newAsyncBuilder('builtToFail')
+    .builds('third')
+    .run({}, function (err, result) {
+      var graphInfo = err.graphInfo
+      test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
+
+      var failureNodes = graphInfo.failureNodeChain
+      test.equal(failureNodes[0].originalNodeName, 'throws', 'throws should be the first node in the chain')
+      test.equal(failureNodes[1].originalNodeName, 'first', 'first should be the second node in the chain')
+      test.equal(failureNodes[2].originalNodeName, 'second', 'second should be the third node in the chain')
+      test.equal(failureNodes[3].originalNodeName, 'third', 'third should be the fourth node in the chain')
+    })
+    .then(function (result) {
+      test.equal(result, undefined, 'Result should not be returned through promise')
+    })
+    .fail(function (err) {
+      var graphInfo = err.graphInfo
+      test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
+
+      var failureNodes = graphInfo.failureNodeChain
+      test.equal(failureNodes[0].originalNodeName, 'throws', 'throws should be the first node in the chain')
+      test.equal(failureNodes[1].originalNodeName, 'first', 'first should be the second node in the chain')
+      test.equal(failureNodes[2].originalNodeName, 'second', 'second should be the third node in the chain')
+      test.equal(failureNodes[3].originalNodeName, 'third', 'third should be the fourth node in the chain')
+    })
+    .then(function () {
+      test.done()
+    })
+    .end()
+}
+
 module.exports = testCase(tester)
