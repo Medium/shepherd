@@ -277,9 +277,18 @@ tester.testMissingParentArg = function (test) {
     .builds('test2')
       .using('args.*')
 
-  this.graph.newAsyncBuilder()
-    .builds('test3')
-    .compile(['fname'])
+  var expectedError = "Unable to find node 'args.lname' (passed from 'test2' to 'test1')"
+  var actualError
+  try {
+    this.graph.newAsyncBuilder()
+      .builds('test3')
+      .compile(['fname'])
+  } catch (e) {
+    actualError = e.message
+  }
+
+  test.equal(actualError, expectedError, "Build should fail due to missing parent arg")
+  test.done()
 }
 
 module.exports = testCase(tester)
