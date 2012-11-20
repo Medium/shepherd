@@ -262,4 +262,33 @@ tester.testSubgraphWildcard = function (test) {
     .end()
 }
 
+// test that an arg. was passed with an invalid arg
+tester.testMissingParentArg = function (test) {
+  this.graph.add('test1', this.graph.subgraph)
+    .args('fname', 'lname')
+
+  this.graph.add('test2', this.graph.subgraph)
+    .args('fname')
+    .builds('test1')
+      .using('args.fname', 'args.lname')
+
+  this.graph.add('test3', this.graph.subgraph)
+    .args('fname')
+    .builds('test2')
+      .using('args.*')
+
+  var expectedError = "Unable to find node 'args.lname' (passed from 'test2' to 'test1')"
+  var actualError
+  try {
+    this.graph.newAsyncBuilder()
+      .builds('test3')
+      .compile(['fname'])
+  } catch (e) {
+    actualError = e.message
+  }
+
+  test.equal(actualError, expectedError, "Build should fail due to missing parent arg")
+  test.done()
+}
+
 module.exports = testCase(tester)
