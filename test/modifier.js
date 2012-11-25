@@ -246,4 +246,57 @@ tester.testOptionalModifiers = function (test) {
     .end()
 }
 
+// test passing a subgraph as a modifier (using args.)
+tester.testSubgraphAsModifier = function (test) {
+  this.graph.add('str-upper', function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  this.graph.add('str-lower', function (str) {
+    return str.toLowerCase()
+  }, ['str'])
+
+  this.graph.add('str-mixed', function (str1, str2) {
+    var newStr = ''
+    for (var i = 0; i < str1.length; i++) {
+      newStr += i % 2 == 0 ? str1[i] : str2[i]
+    }
+    return newStr
+  }, ['!str'])
+    .builds('str-upper')
+      .using('args.str')
+    .builds('str-lower')
+      .using('args.str')
+
+  this.graph.add('str-proxy1', this.graph.subgraph, ['str'])
+    .modifiers('str-mixed')
+
+  this.graph.add('str-proxy2', this.graph.subgraph, ['str'])
+
+  var startStr = 'This_is_a_test'
+  var endStr = 'ThIs_iS_A_TeSt'
+  this.graph.newAsyncBuilder()
+    .builds('str-proxy1')
+      .using({str: 'inputStr'})
+    .builds('str-proxy2')
+      .using({str: 'inputStr'})
+      .modifiers('str-mixed')
+    .run({inputStr: startStr}, function (err, result) {
+      test.equal(err, undefined, 'Error should be undefined')
+      test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
+      test.equal(result['str-proxy2'], endStr, 'String should be mixed case')
+    })
+    .fail(function (err) {
+      test.equal(true, false, 'Error handler in promise should not be called')
+    })
+    .then(function (result) {
+      test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
+      test.equal(result['str-proxy2'], endStr, 'String should be mixed case')
+    })
+    .then(function () {
+      test.done()
+    })
+    .end()
+}
+
 module.exports = testCase(tester)
