@@ -11,6 +11,14 @@ tester.setUp = function (done) {
   done()
 }
 
+// test that the function for a node can be retrieved
+tester.testFunction = function (test) {
+  var echo = function (input) { return input }
+  this.graph.add('echo', echo, ['input'])
+  test.equal(this.graph.getFunction('echo'), echo, "The handler function should be returned")
+  test.done()
+}
+
 // test passing args inline vs chained
 tester.testArgs = function (test) {
   var name = 'Jeremy'
