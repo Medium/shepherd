@@ -26,7 +26,9 @@ tester.testWithCallbacks = function (test) {
     })
 }
 
-// undefineds aren't usually allowed to be returned, test that they can w/o callbacks
+// undefineds aren't allowed to be returned directly when callbacks are enabled (due to
+// not knowing if the callback is still pending) but they may be returned if callbacks are
+// disabled (as only promises or synchronous return values are valid responses)
 tester.testWithoutCallbacks = function (test) {
   this.graph.disableCallbacks()
   this.graph.add("name-withoutCallback", function (callback) {
