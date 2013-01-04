@@ -1,12 +1,8 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.error = new Error('This should break')
   this.graph = new (require ('../lib/asyncBuilder')).Graph
 
@@ -24,7 +20,7 @@ tester.setUp = function (done) {
 }
 
 // test inputs defined through .using in child nodes
-tester.testInputThroughSubgraphLiterals = function (test) {
+exports.testInputThroughSubgraphLiterals = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
 
@@ -47,7 +43,7 @@ tester.testInputThroughSubgraphLiterals = function (test) {
 }
 
 // test inputs defined through .using() in child nodes as members of other nodes
-tester.testInputThroughSubgraphNodeChildren = function (test) {
+exports.testInputThroughSubgraphNodeChildren = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
   this.graph.add('user-existing', function () {
@@ -79,7 +75,7 @@ tester.testInputThroughSubgraphNodeChildren = function (test) {
 }
 
 // test inputs through builder .using() in child nodes as prefixed other nodes
-tester.testInputThroughSubgraphNodes = function (test) {
+exports.testInputThroughSubgraphNodes = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
   this.graph.add('name-existing', function () {
@@ -111,7 +107,7 @@ tester.testInputThroughSubgraphNodes = function (test) {
 }
 
 // test inputs defined through .using in the builder
-tester.testInputThroughBuilderLiterals = function (test) {
+exports.testInputThroughBuilderLiterals = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
 
@@ -131,7 +127,7 @@ tester.testInputThroughBuilderLiterals = function (test) {
 }
 
 // test inputs through builder .using() as members of other nodes
-tester.testInputThroughBuilderNodeChildren = function (test) {
+exports.testInputThroughBuilderNodeChildren = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
   this.graph.add('user-existing', function () {
@@ -158,7 +154,7 @@ tester.testInputThroughBuilderNodeChildren = function (test) {
 }
 
 // test inputs through builder .using() as prefixed other nodes
-tester.testInputThroughBuilderNodes = function (test) {
+exports.testInputThroughBuilderNodes = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
   this.graph.add('name-existing', function () {
@@ -187,7 +183,7 @@ tester.testInputThroughBuilderNodes = function (test) {
 }
 
 // adding subgraph
-tester.testSubgraph = function (test) {
+exports.testSubgraph = function (test) {
   var firstName = 'Jeremy'
   var lastName = 'Stanley'
 
@@ -221,7 +217,7 @@ tester.testSubgraph = function (test) {
 }
 
 // adding subgraph w/ wildcard args
-tester.testSubgraphWildcard = function (test) {
+exports.testSubgraphWildcard = function (test) {
   var firstName = 'Jeremy'
   var lastName = 'Stanley'
   var newLastName = 'Yelnats'
@@ -263,7 +259,7 @@ tester.testSubgraphWildcard = function (test) {
 }
 
 // test that an arg. was passed with an invalid arg
-tester.testMissingParentArg = function (test) {
+exports.testMissingParentArg = function (test) {
   this.graph.add('test1', this.graph.subgraph)
     .args('fname', 'lname')
 
@@ -290,5 +286,3 @@ tester.testMissingParentArg = function (test) {
   test.equal(actualError, expectedError, "Build should fail due to missing parent arg")
   test.done()
 }
-
-module.exports = testCase(tester)

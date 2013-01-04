@@ -1,18 +1,14 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // test pre handlers for a graph
-tester.testPre = function (test) {
+exports.testPre = function (test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -50,7 +46,7 @@ tester.testPre = function (test) {
 }
 
 // test post handlers for a graph
-tester.testPost = function (test) {
+exports.testPost = function (test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -88,7 +84,7 @@ tester.testPost = function (test) {
 }
 
 // test mixed handlers for a graph
-tester.testMixed = function (test) {
+exports.testMixed = function (test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -138,5 +134,3 @@ tester.testMixed = function (test) {
   })
   .end()
 }
-
-module.exports = testCase(tester)

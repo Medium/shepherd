@@ -1,18 +1,14 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // test a standard graph node with a callback
-tester.testWithCallbacks = function (test) {
+exports.testWithCallbacks = function (test) {
   this.graph.add("name-withCallback", function (callback) {
     callback(null, "Jeremy")
   })
@@ -29,7 +25,7 @@ tester.testWithCallbacks = function (test) {
 // undefineds aren't allowed to be returned directly when callbacks are enabled (due to
 // not knowing if the callback is still pending) but they may be returned if callbacks are
 // disabled (as only promises or synchronous return values are valid responses)
-tester.testWithoutCallbacks = function (test) {
+exports.testWithoutCallbacks = function (test) {
   this.graph.disableCallbacks()
   this.graph.add("name-withoutCallback", function (callback) {
     test.equal(typeof callback, "undefined", "Callback should be undefined")
@@ -44,5 +40,3 @@ tester.testWithoutCallbacks = function (test) {
       test.done()
     })
 }
-
-module.exports = testCase(tester)

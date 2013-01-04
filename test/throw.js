@@ -1,19 +1,15 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.error = new Error('This should break')
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // errors thrown at top level should be caught and fed to the run() request
-tester.testErrorThrown = function (test) {
+exports.testErrorThrown = function (test) {
   var error = this.error
 
   // add a node which throws an error
@@ -39,7 +35,7 @@ tester.testErrorThrown = function (test) {
 }
 
 // errors returned through next() should be caught and fed to the run() request
-tester.testErrorViaCallback = function (test) {
+exports.testErrorViaCallback = function (test) {
   var error = this.error
 
   // add a node which throws an error
@@ -65,7 +61,7 @@ tester.testErrorViaCallback = function (test) {
 }
 
 // errors returned through a rejected promise should be caught and fed to the run() request
-tester.testErrorViaPromise = function (test) {
+exports.testErrorViaPromise = function (test) {
   var error = this.error
 
   // add a node which throws an error
@@ -93,7 +89,7 @@ tester.testErrorViaPromise = function (test) {
 }
 
 // errors should return with graphInfo field
-tester.testThrowWithGraphInfo = function (test) {
+exports.testThrowWithGraphInfo = function (test) {
   // add a node which throws an error
   this.graph.add('throws', function (next) {
     throw new Error('Threw an error')
@@ -138,5 +134,3 @@ tester.testThrowWithGraphInfo = function (test) {
     })
     .end()
 }
-
-module.exports = testCase(tester)
