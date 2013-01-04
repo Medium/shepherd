@@ -578,3 +578,41 @@ exports.testEnablingCache = function (test) {
     })
     .end()
 }
+
+// nodes should only be added with a 2-part hyphen-delimited name
+exports.testHyphenatedNames = function (test) {
+  this.graph = this.graph.clone()
+  this.graph.enforceTwoPartNames()
+
+  this.graph.add('test-delimited', this.graph.literal('ok'))
+
+  try {
+    this.graph.add('testNonDelimited', this.graph.literal('not ok'))
+    test.fail("Should not be allowed to add the 'testNonDelimited' node")
+  } catch (e) {
+    test.ok(true, "Verified unable to add 'testNonDelimited' node")
+  }
+
+  try {
+    this.graph.add('test-extra-delimited', this.graph.literal('not ok'))
+    test.fail("Should not be allowed to add the 'test-extra-delimited' node")
+  } catch (e) {
+    test.ok(true, "Verified unable to add 'test-extra-delimited' node")
+  }
+
+  try {
+    this.graph.add('-prefixed', this.graph.literal('not ok'))
+    test.fail("Should not be allowed to add the '-prefixed' node")
+  } catch (e) {
+    test.ok(true, "Verified unable to add '-prefixed' node")
+  }
+
+  try {
+    this.graph.add('suffixed-', this.graph.literal('not ok'))
+    test.fail("Should not be allowed to add the 'suffixed-' node")
+  } catch (e) {
+    test.ok(true, "Verified unable to add 'suffixed-' node")
+  }
+
+  test.done()
+}
