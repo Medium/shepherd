@@ -1,19 +1,15 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.response = {name: 'Jeremy'}
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // responses returned immediately should be handled
-tester.testResponseReturned = function (test) {
+exports.testResponseReturned = function (test) {
   var response = this.response
 
   this.graph.add('returns', function () {
@@ -39,7 +35,7 @@ tester.testResponseReturned = function (test) {
 }
 
 // responses sent through node-style callback should be handled
-tester.testResponseViaCallback = function (test) {
+exports.testResponseViaCallback = function (test) {
   var response = this.response
 
   this.graph.add('returns', function (next) {
@@ -65,7 +61,7 @@ tester.testResponseViaCallback = function (test) {
 }
 
 // responses sent through promise should be handled
-tester.testResponseViaPromise = function (test) {
+exports.testResponseViaPromise = function (test) {
   var response = this.response
 
   this.graph.add('returns', function (next) {
@@ -91,5 +87,3 @@ tester.testResponseViaPromise = function (test) {
     })
     .end()
 }
-
-module.exports = testCase(tester)

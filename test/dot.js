@@ -1,18 +1,14 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // test creating a dot graph from a given
-tester.testDotGraph = function (test) {
+exports.testDotGraph = function (test) {
   this.graph.add('name-fromLiteral', {_literal: 'Jeremy'})
   this.graph.add('name-toUpper', function (name) {return name.toUpperCase()}, ['name'])
   this.graph.add('name-toLower', function (name) {return name.toLowerCase()}, ['name'])
@@ -29,5 +25,3 @@ tester.testDotGraph = function (test) {
   test.equal(dotOutput, expectedOutput, "Graph dot output should be predictable")
   test.done()
 }
-
-module.exports = testCase(tester)

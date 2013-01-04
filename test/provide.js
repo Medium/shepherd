@@ -1,19 +1,15 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.error = new Error('This should break')
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // should be able to provide nodes to other nodes at graph creation time
-tester.testProvideTo = function (test) {
+exports.testProvideTo = function (test) {
   var response = this.response
   var prefix = "NAME: "
   var name = "Jeremy"
@@ -43,6 +39,3 @@ tester.testProvideTo = function (test) {
     })
     .end()
 }
-
-
-module.exports = testCase(tester)

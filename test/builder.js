@@ -1,18 +1,14 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // should throw an error if a node is missing
-tester.testMissingBuilderNode = function (test) {
+exports.testMissingBuilderNode = function (test) {
   this.graph.newAsyncBuilder()
     .builds('user')
     .run({}, function (err, result) {
@@ -31,7 +27,7 @@ tester.testMissingBuilderNode = function (test) {
 }
 
 // should be able to retrieve member variables of graph nodes
-tester.testMemberVariable = function (test) {
+exports.testMemberVariable = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('user', this.graph.literal(nodeValue))
 
@@ -54,7 +50,7 @@ tester.testMemberVariable = function (test) {
 }
 
 // test that nodes with identical functions and dependencies only run once
-tester.testDeduplication = function (test) {
+exports.testDeduplication = function (test) {
   var numCalls = 0
   var user = {name: 'Jeremy'}
   var getUser = function () {
@@ -92,7 +88,7 @@ tester.testDeduplication = function (test) {
 }
 
 // test that nodes with identical functions and different dependencies run multiple times
-tester.testDeduplication = function (test) {
+exports.testDeduplication = function (test) {
   var numCalls = 0
   var user = {name: 'Jeremy'}
   var getUser = function () {
@@ -134,7 +130,7 @@ tester.testDeduplication = function (test) {
 }
 
 // test creating a builder which remaps a node to a new name
-tester.testRemappingBuilderNode = function (test) {
+exports.testRemappingBuilderNode = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('userObj', this.graph.literal(nodeValue))
 
@@ -157,7 +153,7 @@ tester.testRemappingBuilderNode = function (test) {
 }
 
 // test creating a graph node which remaps a dependency to a new name
-tester.testRemappingNodeDependency = function (test) {
+exports.testRemappingNodeDependency = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('userObj', this.graph.literal(nodeValue))
 
@@ -189,7 +185,7 @@ tester.testRemappingNodeDependency = function (test) {
 }
 
 // test creating optional nodes from the builder
-tester.testBuilderOptionalNode = function (test) {
+exports.testBuilderOptionalNode = function (test) {
   var output = ""
   var username = "Jeremy"
 
@@ -227,5 +223,3 @@ tester.testBuilderOptionalNode = function (test) {
     })
     .end()
 }
-
-module.exports = testCase(tester)

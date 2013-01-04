@@ -1,12 +1,8 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.error = new Error('This should break')
   this.graph = new (require ('../lib/asyncBuilder')).Graph
 
@@ -14,7 +10,7 @@ tester.setUp = function (done) {
 }
 
 // test adding an anonymous function as a modifier
-tester.testAnonymousModifier = function (test) {
+exports.testAnonymousModifier = function (test) {
   var name = "Jeremy"
 
   this.graph.add('name-fromLiteral', this.graph.literal(name))
@@ -41,7 +37,7 @@ tester.testAnonymousModifier = function (test) {
 }
 
 // builder can apply modifiers to built node
-tester.testModifiersFromBuilder = function (test) {
+exports.testModifiersFromBuilder = function (test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -75,7 +71,7 @@ tester.testModifiersFromBuilder = function (test) {
 }
 
 // node can apply modifiers to child node
-tester.testModifiersFromSubgraph = function (test) {
+exports.testModifiersFromSubgraph = function (test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -112,7 +108,7 @@ tester.testModifiersFromSubgraph = function (test) {
 }
 
 // node can apply modifiers to itself
-tester.testModifiersFromSelf = function (test) {
+exports.testModifiersFromSelf = function (test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -146,7 +142,7 @@ tester.testModifiersFromSelf = function (test) {
 }
 
 // modifiers should run for self first, then builder
-tester.testModifiersOrdering = function (test) {
+exports.testModifiersOrdering = function (test) {
   var nodeValue = "Jeremy"
 
   this.graph.add("trimFirstChar", function (name) {
@@ -180,7 +176,7 @@ tester.testModifiersOrdering = function (test) {
 }
 
 // modifiers can take prefixed node names as inputs
-tester.testModifiersWithPrefixedNodes = function (test) {
+exports.testModifiersWithPrefixedNodes = function (test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -214,7 +210,7 @@ tester.testModifiersWithPrefixedNodes = function (test) {
 }
 
 // test creating modifiers with optional fields
-tester.testOptionalModifiers = function (test) {
+exports.testOptionalModifiers = function (test) {
   var username = "Jeremy"
   this.graph.add('str-base', this.graph.literal(username))
 
@@ -247,7 +243,7 @@ tester.testOptionalModifiers = function (test) {
 }
 
 // test passing a subgraph as a modifier (using args.)
-tester.testSubgraphAsModifier = function (test) {
+exports.testSubgraphAsModifier = function (test) {
   this.graph.add('str-upper', function (str) {
     return str.toUpperCase()
   }, ['str'])
@@ -298,5 +294,3 @@ tester.testSubgraphAsModifier = function (test) {
     })
     .end()
 }
-
-module.exports = testCase(tester)

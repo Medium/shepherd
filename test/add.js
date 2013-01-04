@@ -1,18 +1,14 @@
 // Copyright 2012 The Obvious Corporation.
-var testCase = require('nodeunit').testCase
 var Q = require('kew')
 
-// set up the test case
-var tester = {}
-
 // set up a graph for testing
-tester.setUp = function (done) {
+exports.setUp = function (done) {
   this.graph = new (require ('../lib/asyncBuilder')).Graph
   done()
 }
 
 // test that the function for a node can be retrieved
-tester.testFunction = function (test) {
+exports.testFunction = function (test) {
   var echo = function (input) { return input }
   this.graph.add('echo', echo, ['input'])
   test.equal(this.graph.getFunction('echo'), echo, "The handler function should be returned")
@@ -20,7 +16,7 @@ tester.testFunction = function (test) {
 }
 
 // test passing args inline vs chained
-tester.testArgs = function (test) {
+exports.testArgs = function (test) {
   var name = 'Jeremy'
   var returnInput = function () {
     return arguments[0]
@@ -51,7 +47,7 @@ tester.testArgs = function (test) {
 }
 
 // test passing func inline vs chained
-tester.testFunc = function (test) {
+exports.testFunc = function (test) {
   var name = 'Jeremy'
   var returnInput = function () {
     return arguments[0]
@@ -84,7 +80,7 @@ tester.testFunc = function (test) {
 }
 
 // adding literal (object) through graph.literal()
-tester.testAddLiteralObjectThroughFunction = function (test) {
+exports.testAddLiteralObjectThroughFunction = function (test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, this.graph.literal(nodeValue))
@@ -108,7 +104,7 @@ tester.testAddLiteralObjectThroughFunction = function (test) {
 }
 
 // adding literal (object) through val passed to graph.add() directly
-tester.testAddLiteralObjectThroughVal = function (test) {
+exports.testAddLiteralObjectThroughVal = function (test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, nodeValue)
@@ -132,7 +128,7 @@ tester.testAddLiteralObjectThroughVal = function (test) {
 }
 
 // adding literal (object) through val passed through {_literal:VAL}
-tester.testAddLiteralObjectThroughObject = function (test) {
+exports.testAddLiteralObjectThroughObject = function (test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, {_literal: nodeValue})
@@ -156,7 +152,7 @@ tester.testAddLiteralObjectThroughObject = function (test) {
 }
 
 // adding literal (number) through val passed through graph.literal
-tester.testAddLiteralNumberThroughFunction = function (test) {
+exports.testAddLiteralNumberThroughFunction = function (test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, this.graph.literal(nodeValue))
@@ -180,7 +176,7 @@ tester.testAddLiteralNumberThroughFunction = function (test) {
 }
 
 // adding literal (number) through val passed to graph.add() directly
-tester.testAddLiteralNumberThroughVal = function (test) {
+exports.testAddLiteralNumberThroughVal = function (test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, nodeValue)
@@ -204,7 +200,7 @@ tester.testAddLiteralNumberThroughVal = function (test) {
 }
 
 // adding literal (number) through val passed through {_literal:VAL}
-tester.testAddLiteralNumberThroughObject = function (test) {
+exports.testAddLiteralNumberThroughObject = function (test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, {_literal: nodeValue})
@@ -228,7 +224,7 @@ tester.testAddLiteralNumberThroughObject = function (test) {
 }
 
 // adding literal (string) through val passed to graph.literal()
-tester.testAddLiteralStringThroughFunction = function (test) {
+exports.testAddLiteralStringThroughFunction = function (test) {
   var nodeName = 'name'
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, this.graph.literal(nodeValue))
@@ -252,7 +248,7 @@ tester.testAddLiteralStringThroughFunction = function (test) {
 }
 
 // adding literal (string) through val passed through {_literal:VAL}
-tester.testAddLiteralStringThroughObject = function (test) {
+exports.testAddLiteralStringThroughObject = function (test) {
   var nodeName = 'name'
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, {_literal: nodeValue})
@@ -276,7 +272,7 @@ tester.testAddLiteralStringThroughObject = function (test) {
 }
 
 // anonymous functions should be be added to the graph correctly and should have valid dependencies
-tester.testAddAnonymous = function (test) {
+exports.testAddAnonymous = function (test) {
   var nodeHint = 'name'
   var nodeValue = 'Jeremy'
   var nodeName = this.graph.addAnonymous(nodeHint, function () {
@@ -310,7 +306,7 @@ tester.testAddAnonymous = function (test) {
 }
 
 // functions should be clonable via graph.add('newNodeName', 'oldNodeName')
-tester.testClone = function (test) {
+exports.testClone = function (test) {
   var nodeHint = 'name'
   var nodeValue = 'Jeremy'
   var nodeName = this.graph.addAnonymous(nodeHint, function () {
@@ -338,7 +334,7 @@ tester.testClone = function (test) {
 }
 
 // functions should take an expected number of arguments
-tester.testNumArguments = function (test) {
+exports.testNumArguments = function (test) {
   var argCounter = function (numExpected) {
     return function () {
       // expect 1 more argument than specified (for the callback)
@@ -363,7 +359,7 @@ tester.testNumArguments = function (test) {
 }
 
 // functions should run in order based on normal and silent dependencies
-tester.testNodeOrder = function (test) {
+exports.testNodeOrder = function (test) {
   var output = ''
   var appender = function (str) {
     return function () {
@@ -397,7 +393,7 @@ tester.testNodeOrder = function (test) {
 }
 
 // required fields for merged nodes should return a single array of dependencies for both
-tester.testMergedRequiredFields = function (test) {
+exports.testMergedRequiredFields = function (test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -429,7 +425,7 @@ tester.testMergedRequiredFields = function (test) {
 }
 
 // required fields of a node should be passed as an array if always referenced via members
-tester.testRequiredFieldsMembers = function (test) {
+exports.testRequiredFieldsMembers = function (test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -460,7 +456,7 @@ tester.testRequiredFieldsMembers = function (test) {
 }
 
 // node should receive '*' as requiredFields if only referenced as an entire object
-tester.testRequiredFieldEntireObject = function (test) {
+exports.testRequiredFieldEntireObject = function (test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -488,7 +484,7 @@ tester.testRequiredFieldEntireObject = function (test) {
 }
 
 // node should receive '*' as requiredFields if referenced as an entire object as well as via members
-tester.testRequiredFieldEntireObject = function (test) {
+exports.testRequiredFieldEntireObject = function (test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -519,7 +515,7 @@ tester.testRequiredFieldEntireObject = function (test) {
 }
 
 // node should be uncacheable
-tester.testDisablingCache = function (test) {
+exports.testDisablingCache = function (test) {
   var count = 0
   function incrementCount() {
     return ++count
@@ -552,7 +548,7 @@ tester.testDisablingCache = function (test) {
 }
 
 // node should be cacheable
-tester.testEnablingCache = function (test) {
+exports.testEnablingCache = function (test) {
   var count = 0
   function incrementCount() {
     return ++count
@@ -582,5 +578,3 @@ tester.testEnablingCache = function (test) {
     })
     .end()
 }
-
-module.exports = testCase(tester)
