@@ -413,5 +413,5 @@ License
 Copyright 2012 [The Obvious Corporation](http://obvious.com/).
 
 Licensed under the Apache License, Version 2.0.
-See the top-level file `LICENSE.txt` and
+See the top-level file `LICENSE.TXT` and
 (http://www.apache.org/licenses/LICENSE-2.0).
