@@ -1,5 +1,5 @@
 {
-    "name": "asyncBuilder"
+    "name": "governor"
   , "description": "handle async dependency loading"
   , "version": "1.1.8"
   , "homepage": "https://github.com/Obvious/asyncBuilder"
@@ -10,7 +10,7 @@
   , "contributors": [
 
     ]
-  , "keywords": ["asyncBuilder"]
+  , "keywords": ["governor"]
   , "main": "lib/asyncBuilder.js"
   , "repository": {
       "type": "git"
