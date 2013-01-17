@@ -4,7 +4,7 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.error = new Error('This should break')
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -22,7 +22,7 @@ exports.testProvideTo = function (test) {
 
   this.graph
     .provideTo('prefixedName', {prefix: 'myPrefix', name: 'myName'})
-    .newAsyncBuilder()
+    .newBuilder()
     .builds('prefixedName')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')

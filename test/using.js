@@ -4,7 +4,7 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.error = new Error('This should break')
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
 
   this.userId = 123
   this.name = 'Fred'
@@ -28,7 +28,7 @@ exports.testInputThroughSubgraphLiterals = function (test) {
     .builds('user-new')
       .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-newFromSubgraph')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -59,7 +59,7 @@ exports.testInputThroughSubgraphNodeChildren = function (test) {
     .builds('user-new')
       .using('args.user.name', 'args.user.email', 'args.user.userId')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-newFromSubgraph')
       .using('user-existing')
     .run({}, function (err, result) {
@@ -92,7 +92,7 @@ exports.testInputThroughSubgraphNodes = function (test) {
     .builds('user-new')
       .using('email-existing', 'name-existing', 'userId-existing')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-newFromSubgraph')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -111,7 +111,7 @@ exports.testInputThroughBuilderLiterals = function (test) {
   var self = this
   this.graph.add('user-new', this.createUser, ['userId', 'name', 'email'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-new')
       .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
     .run({}, function (err, result) {
@@ -138,7 +138,7 @@ exports.testInputThroughBuilderNodeChildren = function (test) {
     }
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-new')
       .using('user-existing.email', 'user-existing.userId', 'user-existing.name')
     .run({}, function (err, result) {
@@ -167,7 +167,7 @@ exports.testInputThroughBuilderNodes = function (test) {
     return self.email
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-new')
       .using('email-existing', 'name-existing', 'userId-existing')
     .run({}, function (err, result) {
@@ -198,7 +198,7 @@ exports.testSubgraph = function (test) {
     .builds('str-joined')
       .using({first: 'args.firstName'}, {second: 'args.lastName'})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('fullName')
     .run({firstName: firstName, lastName: lastName}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -238,7 +238,7 @@ exports.testSubgraphWildcard = function (test) {
     .builds('fullName')
       .using('args.*', {lastName: this.graph.literal(newLastName)})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('fullName-overrides')
       .using({firstName: 'fname'}, {lastName: 'lname'})
     .run({fname: firstName, lname: lastName}, function (err, result) {
@@ -276,7 +276,7 @@ exports.testMissingParentArg = function (test) {
   var expectedError = "Unable to find node 'args.lname' (passed from 'test2' to 'test1')"
   var actualError
   try {
-    this.graph.newAsyncBuilder()
+    this.graph.newBuilder()
       .builds('test3')
       .compile(['fname'])
   } catch (e) {
