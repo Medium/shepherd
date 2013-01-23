@@ -15,6 +15,42 @@ exports.testFunction = function (test) {
   test.done()
 }
 
+// test that an appropriate error is thrown at compile time if a handler is missing
+exports.testFunctionMissingCompiled = function (test) {
+  this.graph.add('doSomething')
+
+  try {
+    this.graph.newAsyncBuilder()
+      .builds('doSomething')
+      .compile([])
+    test.fail("Graph node requires a handler function")
+  } catch (e) {
+    test.equal(e.message.indexOf('requires a handler function') >= 0, true, "Graph node requires a handler function")
+    test.done()
+  }
+}
+
+// test that an appropriate error is thrown at run time if a handler is missing
+exports.testFunctionMissingRuntime = function (test) {
+  this.graph.add('doSomething')
+
+  try {
+    this.graph.newAsyncBuilder()
+      .builds('doSomething')
+      .run({})
+      .then(function () {
+        test.fail("Should fail due to missing handler")
+      })
+      .fail(function (e) {
+        test.equal(e.message.indexOf('requires a handler function') >= 0, true, "Graph node requires a handler function")
+      })
+      .fin(test.done.bind(test))
+  } catch (e) {
+    test.equal(e.message.indexOf('requires a handler function') >= 0, true, "Graph node requires a handler function")
+    test.done()
+  }
+}
+
 // test passing args inline vs chained
 exports.testArgs = function (test) {
   var name = 'Jeremy'
