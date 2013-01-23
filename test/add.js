@@ -15,6 +15,37 @@ exports.testFunction = function (test) {
   test.done()
 }
 
+// test that handlers are required for nodes
+exports.testMissingNodesGraph = function (test) {
+  this.graph.add('testFn')
+
+  try {
+    this.graph.newBuilder()
+      .builds('testFn')
+      .compile()
+    test.fail('Functions without callbacks should throw errors')
+  } catch (e) {
+    test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+  }
+  test.done()
+}
+
+// test that handlers are required for nodes
+exports.testMissingNodesBuilder = function (test) {
+  this.graph.add('testFn')
+
+  this.graph.newBuilder()
+    .builds('testFn')
+    .run()
+    .then(function () {
+      test.fail('Functions without callbacks should throw errors')
+    })
+    .fail(function (e) {
+      test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+    })
+    .fin(test.done.bind(test))
+}
+
 // test passing args inline vs chained
 exports.testArgs = function (test) {
   var name = 'Jeremy'
