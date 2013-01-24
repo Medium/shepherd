@@ -3,13 +3,13 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
 // should throw an error if a node is missing
 exports.testMissingBuilderNode = function (test) {
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user')
     .run({}, function (err, result) {
       test.equal(err.message, "Unable to find node 'user'", 'Error should be defined')
@@ -31,7 +31,7 @@ exports.testMemberVariable = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('user', this.graph.literal(nodeValue))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user.name')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -61,7 +61,7 @@ exports.testDeduplication = function (test) {
   this.graph.add('user2', getUser)
   this.graph.add('user3', getUser)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user1')
     .builds('user2')
     .builds('user3')
@@ -103,7 +103,7 @@ exports.testDeduplication = function (test) {
   this.graph.add('b', 2)
   this.graph.add('c', 3)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user1')
     .builds('user2')
     .builds('user3')
@@ -134,7 +134,7 @@ exports.testRemappingBuilderNode = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('userObj', this.graph.literal(nodeValue))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds({'user': 'userObj'})
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -166,7 +166,7 @@ exports.testRemappingNodeDependency = function (test) {
     .builds({'!user': 'userObj'})
     .builds('username-fromUser').using('user')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('username-test')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -202,7 +202,7 @@ exports.testBuilderOptionalNode = function (test) {
   this.graph.add("str-test", this.graph.subgraph)
     .args('str')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('?str-toUpper').using({str: 'username'})
     .builds('?str-toLower').using({str: 'username'})
     .builds('str-test').using('str-toLower')

@@ -4,7 +4,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -36,16 +36,16 @@ exports.testGetClones = function (test) {
 // verify that all builders are returned by getBuilders()
 exports.testGetBuilders = function (test) {
   var builders = {}
-  var builder1 = this.graph.newAsyncBuilder()
-  var builder2 = this.graph.newAsyncBuilder()
-  var builder3 = this.graph.newAsyncBuilder("named")
+  var builder1 = this.graph.newBuilder()
+  var builder2 = this.graph.newBuilder()
+  var builder3 = this.graph.newBuilder("named")
 
   builders[oid.hash(builder1)] = builder1
   builders[oid.hash(builder2)] = builder2
   builders[oid.hash(builder3)] = builder3
 
   try {
-    var builder4 = this.graph.newAsyncBuilder("named")
+    var builder4 = this.graph.newBuilder("named")
     test.fail(true, "Shouldn't be able to create another builder with the same name")
   } catch (e) {
     test.ok("Shouldn't be able to create another builder with the same name")

@@ -4,7 +4,7 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.error = new Error('This should break')
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -17,7 +17,7 @@ exports.testErrorThrown = function (test) {
     throw error
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -43,7 +43,7 @@ exports.testErrorViaCallback = function (test) {
     return next(error)
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -71,7 +71,7 @@ exports.testErrorViaPromise = function (test) {
     return deferred.promise
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -104,7 +104,7 @@ exports.testThrowWithGraphInfo = function (test) {
   this.graph.add('third', this.graph.subgraph)
     .builds('second')
 
-  this.graph.newAsyncBuilder('builtToFail')
+  this.graph.newBuilder('builtToFail')
     .builds('third')
     .run({}, function (err, result) {
       var graphInfo = err.graphInfo

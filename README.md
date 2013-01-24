@@ -1,15 +1,17 @@
-asyncBuilder: asynchronous dependency injection and more!
+shepherd: asynchronous dependency injection and more!
 ==================================
 
-**asyncBuilder** is dependency injection via a `Graph` of dependencies and a `Builder` which is used to define which of those dependencies you need at any given point in time. Dealing with nested functions (in the best of cases) becomes hard to optimize when you have varied dependencies and **asyncBuilder** is here to allieviate that pain while abstracting away the complexity of the underlying `Graph` and allowing for easily testable bits of code.
+**Shepherd** is a graph-based dependency resolution system, designed to simplify request pipelines that have multiple asynchronous steps. Shepherd makes it easy to split code into fine-grained, composable units.
+
+For example, a feed may draw on multiple sources of data which need to be fetched in parallel (and each may have multiple processing steps), but they may have some common dependencies. With **Shepherd**, you would break each step into a single function, which would return immediately or through a promise, and specify any direct dependencies. Once all of the components are created atomically, the `Graph` will handle when each node runs and provide you with the processed output once all steps have completed.
 
 Getting started
 -------
 
-To get started with **asyncBuilder**, you need to create a `Graph`. A `Graph` is a registry of all of the things you want to be able to do (units of work). First, instantiate the Graph:
+To get started with **shepherd**, you need to create a `Graph`. A `Graph` is a registry of all of the things you want to be able to do (units of work). First, instantiate the Graph:
 
 ```javascript
-var graph = new require("asyncBuilder").Graph
+var graph = new require("shepherd").Graph
 ```
 
 Next, you need to add some nodes to the `Graph` which perform said units of work. Let's add 2 nodes to the Graph:
@@ -28,7 +30,7 @@ graph.add('str-toUpper', toUpper, ['str'])
 Now that you have a `Graph` of things that can be done, you need to create a `Builder` which will connect those different pieces together to produce a desired result. In this case we'll create a `Builder` which will uppercase an input string and return the current timestamp in millis:
 
 ```javascript
-var builder = graph.newAsyncBuilder()
+var builder = graph.newBuilder()
   .builds('str-toUpper')
   .builds('timestamp-nowMillis')
 ```
@@ -42,15 +44,15 @@ builder.run({str: "Hello"}, function (err, data) {
 })
 ```
 
-And that's the simple flow through **asyncBuilder**, though there's a lot of additional functionality listed below.
+And that's the simple flow through **shepherd**, though there's a lot of additional functionality listed below.
 
 What is the Graph really?
 -------
 
-The `Graph` in asyncBuilder is the place where you put all the things your application is able to do. Before you add any nodes to a `Graph`, you'll need to make sure to instantiate it first:
+The `Graph` in shepherd is the place where you put all the things your application is able to do. Before you add any nodes to a `Graph`, you'll need to make sure to instantiate it first:
 
 ```javascript
-var graph = new require("asyncBuilder").Graph
+var graph = new require("shepherd").Graph
 ```
 
 Adding nodes to the Graph
@@ -69,13 +71,13 @@ graph.add("str-toLower", function (str) { return str.toLowerCase() })
 
 ### About node names
 
-Many functions in **asyncBuilder** can take *either* the name of a node *or* an object (arg-to-node or node-to-arg mapping based on context) as an input. If the name of a node is passed in, the following rules are used to determine what the corresponding arg name should be (returning as soon as a rule is met):
+Many functions in **shepherd** can take *either* the name of a node *or* an object (arg-to-node or node-to-arg mapping based on context) as an input. If the name of a node is passed in, the following rules are used to determine what the corresponding arg name should be (returning as soon as a rule is met):
 
 1. If the node name contains a **.** (using members, defined later), the arg name is anything to the right of the last **.** *e.g.: user.username becomes username*
 2. If the node name contains a **-**, the arg name is anything to the left of the first **-** *e.g.: user-fromSpain becomes user*
 3. If no previous match is made, the arg name is the node name *e.g.: userCredentials becomes userCredentials*
 
-This leads to certain *suggested* naming patterns within the **asyncBuilder** world:
+This leads to certain *suggested* naming patterns within the **shepherd** world:
 
 * Nodes should be named as *TYPE_OF_RESPONSE*-*SOURCE_OF_RESPONSE* *e.g.: user-byId*
 * Nodes should be referenced as specifically as possible via members (defined later) *e.g.: user-byId.username*
@@ -94,12 +96,12 @@ graph.add('userObj', {name: "Jeremy"})
 
 // DON'T WORRY ABOUT THE DETAILS WITH THE BUILDER NOW, THEY'LL BE EXPLAINED LATER
 // creates a builder which passes name-fromLiteral into name-toUpper
-graph.newAsyncBuilder()
+graph.newBuilder()
   .builds('name-toUpper')
     .using('name-fromLiteral') // this automatically figures out that it should be passed as 'name'
 
 // creates a builder which passes userObj.name into name-toUpper
-graph.newAsyncBuilder()
+graph.newBuilder()
   .builds('name-toUpper')
     .using('userObj.name') // this automatically figures out that it should be passed as 'name'
 ```
@@ -150,7 +152,7 @@ graph.add('name-fromObject', {_literal: 'Jeremy'})
 graph.add('name-fromFunction', graph.literal('Jeremy'))
 ```
 
-Strings require a special case due to the cloning behavior built into **asyncBuilder**. If you wish to clone a node into a node with a new name, call .add() with the old name and the new name:
+Strings require a special case due to the cloning behavior built into **shepherd**. If you wish to clone a node into a node with a new name, call .add() with the old name and the new name:
 
 ```javascript
 // copy one node to another
@@ -392,7 +394,7 @@ Contributing
 ------------
 
 Questions, comments, bug reports, and pull requests are all welcome.
-Submit them at [the project on GitHub](https://github.com/Obvious/asyncBuilder/).
+Submit them at [the project on GitHub](https://github.com/Obvious/shepherd/).
 
 Bug reports that include steps-to-reproduce (including code) are the
 best. Even better, make them in the form of pull requests that update

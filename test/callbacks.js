@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -13,7 +13,7 @@ exports.testWithCallbacks = function (test) {
     callback(null, "Jeremy")
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds({name: 'name-withCallback'})
     .run({})
     .then(function (data) {
@@ -32,7 +32,7 @@ exports.testWithoutCallbacks = function (test) {
     return undefined
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds({name: 'name-withoutCallback'})
     .run({})
     .then(function (data) {

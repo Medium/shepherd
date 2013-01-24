@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph()
+  this.graph = new (require ('../lib/shepherd')).Graph()
     .enableProfiling()
   done()
 }
@@ -17,7 +17,7 @@ exports.testProfiling = function (test) {
 
   this.graph.add('response-delayed', testDelay, ['delayMs'])
 
-  var builder = this.graph.newAsyncBuilder()
+  var builder = this.graph.newBuilder()
     .builds({delay10: 'response-delayed'})
       .using({delayMs: 10})
     .builds({delay35: 'response-delayed'})

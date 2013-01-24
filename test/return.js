@@ -4,7 +4,7 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.response = {name: 'Jeremy'}
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -16,7 +16,7 @@ exports.testResponseReturned = function (test) {
     return response
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -42,7 +42,7 @@ exports.testResponseViaCallback = function (test) {
     return next(undefined, response)
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -70,7 +70,7 @@ exports.testResponseViaPromise = function (test) {
     return deferred.promise
   })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
