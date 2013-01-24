@@ -14,12 +14,12 @@ exports.testAnonymousModifier = function (test) {
   var name = "Jeremy"
 
   this.graph.add('name-fromLiteral', this.graph.literal(name))
-    .modifiers(function (name) {
-      return name.toUpperCase()
-    })
 
   this.graph.newBuilder()
     .builds('name-fromLiteral')
+      .modifiers(function (name) {
+        return name.toUpperCase()
+      })
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result['name-fromLiteral'], name.toUpperCase(), 'Response should be returned through callback')
@@ -118,47 +118,6 @@ exports.testModifiersFromSubgraph = function (test) {
     .end()
 }
 
-// node can apply modifiers to itself
-exports.testModifiersFromSelf = function (test) {
-  var now = Date.now()
-  var userName = 'Jeremy'
-  var nameHolder = {
-    name: userName
-  }
-  this.graph.add('user-withDate', function (name) {
-    return {
-      name: name
-    }
-  }, ['name'])
-  .modifiers({'addDate': 'obj'})
-
-  this.graph.add('addDate', function (obj) {
-    obj.date = now
-    return obj
-  }, ['obj'])
-
-  this.graph.add('nameHolder', this.graph.literal(nameHolder))
-
-  this.graph.newBuilder()
-    .builds('user-withDate')
-      .using({name: 'nameHolder.name'})
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-withDate'].name, userName, 'User name should be correct')
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
-    .then(function (result) {
-      //test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
-    })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
-
 // modifiers should run for self first, then builder
 exports.testModifiersOrdering = function (test) {
   var nodeValue = "Jeremy"
@@ -172,20 +131,22 @@ exports.testModifiersOrdering = function (test) {
   }, ['name'])
 
   this.graph.add("name-fromLiteral", this.graph.literal(nodeValue))
-    .modifiers('trimFirstChar')
+  this.graph.add("name-wrapped", this.graph.subgraph)
+    .builds('name-fromLiteral')
+      .modifiers('trimFirstChar')
 
   this.graph.newBuilder()
-    .builds('name-fromLiteral')
+    .builds('name-wrapped')
       .modifiers('addQuotes')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['name-fromLiteral'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through callback')
+      test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through callback')
     })
     .fail(function (err) {
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
-      test.equal(result['name-fromLiteral'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
+      test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
     })
     .then(function () {
       test.done()
@@ -202,7 +163,9 @@ exports.testModifiersWithPrefixedNodes = function (test) {
   this.graph.add('user-withDate', function () {
     return user
   })
-    .modifiers('addDate')
+  this.graph.add('user-wrapped', this.graph.subgraph)
+    .builds('user-withDate')
+      .modifiers('addDate')
 
   this.graph.add('addDate', function (userObj) {
     userObj.date = now
@@ -210,16 +173,16 @@ exports.testModifiersWithPrefixedNodes = function (test) {
   }, ['user'])
 
   this.graph.newBuilder()
-    .builds('user-withDate')
+    .builds('user-wrapped')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
+      test.equal(result['user-wrapped'].date, now, 'Response should be returned through callback')
     })
     .fail(function (err) {
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
+      test.equal(result['user-wrapped'].date, now, 'Response should be returned through promise')
     })
     .then(function () {
       test.done()
@@ -282,8 +245,12 @@ exports.testSubgraphAsModifier = function (test) {
     .builds('str-lower')
       .using('args.str')
 
+  this.graph.add('str-testLiteral', this.graph.subgraph, ['str'])
+
   this.graph.add('str-proxy1', this.graph.subgraph, ['str'])
-    .modifiers('str-mixed')
+    .builds('str-testLiteral')
+      .using('args.str')
+      .modifiers('str-mixed')
 
   this.graph.add('str-proxy2', this.graph.subgraph, ['str'])
 
@@ -336,8 +303,12 @@ exports.testSubgraphAsModifierWithObjects = function (test) {
       .builds('str-lower')
         .using('args.obj.str')
 
-    this.graph.add('str-proxy1', this.graph.subgraph, ['obj'])
-      .modifiers({'str-mixed': 'obj'})
+  this.graph.add('obj-testLiteral', this.graph.subgraph, ['obj'])
+
+  this.graph.add('str-proxy1', this.graph.subgraph, ['obj'])
+    .builds('obj-testLiteral')
+      .using('args.obj')
+      .modifiers('str-mixed')
 
     var startStr = 'This_is_a_test'
     var endStr = 'ThIs_iS_A_TeSt'
