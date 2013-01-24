@@ -107,10 +107,10 @@ exports.testModifiersFromSubgraph = function (test) {
       test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
     })
     .fail(function (err) {
-      //test.equal(true, false, 'Error handler in promise should not be called')
+      test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
-      //test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
+      test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
     })
     .then(function () {
       test.done()

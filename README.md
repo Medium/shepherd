@@ -1,7 +1,9 @@
 shepherd: asynchronous dependency injection and more!
 ==================================
 
-**shepherd** is dependency injection via a `Graph` of dependencies and a `Builder` which is used to define which of those dependencies you need at any given point in time. Dealing with nested functions (in the best of cases) becomes hard to optimize when you have varied dependencies and **shepherd** is here to allieviate that pain while abstracting away the complexity of the underlying `Graph` and allowing for easily testable bits of code.
+**Shepherd** is a graph-based dependency resolution system, designed to simplify request pipelines that have multiple asynchronous steps. Shepherd makes it easy to split code into fine-grained, composable units.
+
+For example, a feed may draw on multiple sources of data which need to be fetched in parallel (and each may have multiple processing steps), but they may have some common dependencies. With **Shepherd**, you would break each step into a single function, which would return immediately or through a promise, and specify any direct dependencies. Once all of the components are created atomically, the `Graph` will handle when each node runs and provide you with the processed output once all steps have completed.
 
 Getting started
 -------
