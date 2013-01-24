@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -13,7 +13,7 @@ exports.testPre = function (test) {
     return str + str
   }, ['str'])
 
-  var builder = this.graph.newAsyncBuilder()
+  var builder = this.graph.newBuilder()
     .builds({basic: 'str-duplicated'})
       .using({str: 'str1'})
     .builds({preprocessed: 'str-duplicated'})
@@ -51,7 +51,7 @@ exports.testPost = function (test) {
     return str + str
   }, ['str'])
 
-  var builder = this.graph.newAsyncBuilder()
+  var builder = this.graph.newBuilder()
     .builds({basic: 'str-duplicated'})
       .using({str: 'str1'})
     .builds({postprocessed: 'str-duplicated'})
@@ -89,7 +89,7 @@ exports.testMixed = function (test) {
     return str + str
   }, ['str'])
 
-  var builder = this.graph.newAsyncBuilder()
+  var builder = this.graph.newBuilder()
     .builds({basic: 'str-duplicated'})
       .using({str: 'str1'})
     .builds({processed: 'str-duplicated'})

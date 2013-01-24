@@ -1,6 +1,6 @@
 // set up a graph for testing
 module.exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -10,7 +10,7 @@ module.exports.onReady = function (test) {
 
   // create a builder that will fail its compile due to missing deps
   var builtFirstBuilder
-  var firstBuilder = this.graph.newAsyncBuilder()
+  var firstBuilder = this.graph.newBuilder()
     .builds('lastName-fromFirstAndLast')
   this.graph.onReady(function () {
     try {
@@ -22,7 +22,7 @@ module.exports.onReady = function (test) {
 
   // create a builder that will successfully compile
   var builtSecondBuilder
-  var secondBuilder = this.graph.newAsyncBuilder()
+  var secondBuilder = this.graph.newBuilder()
     .builds('lastName-fromFirstAndLast')
   this.graph.onReady(function () {
     secondBuilder.compile(['firstName', 'lastName'])

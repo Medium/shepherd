@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 module.exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -17,7 +17,7 @@ module.exports.findBuilders = function (test) {
   }
 
   for (var key in builders) {
-    this.graph.newAsyncBuilder(key.length ? key : null).description(builders[key])
+    this.graph.newBuilder(key.length ? key : null).description(builders[key])
   }
 
   // all builders

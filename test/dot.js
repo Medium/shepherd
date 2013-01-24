@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -14,7 +14,7 @@ exports.testDotGraph = function (test) {
   this.graph.add('name-toLower', function (name) {return name.toLowerCase()}, ['name'])
   this.graph.add('age', 5)
 
-  var dotOutput = this.graph.newAsyncBuilder()
+  var dotOutput = this.graph.newBuilder()
     .builds('name-toUpper').using('name-fromLiteral')
     .builds('name-toLower').using('req.query.name')
     .builds('age')

@@ -3,7 +3,7 @@ var Q = require('kew')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -13,6 +13,37 @@ exports.testFunction = function (test) {
   this.graph.add('echo', echo, ['input'])
   test.equal(this.graph.getFunction('echo'), echo, "The handler function should be returned")
   test.done()
+}
+
+// test that handlers are required for nodes
+exports.testMissingNodesGraph = function (test) {
+  this.graph.add('testFn')
+
+  try {
+    this.graph.newBuilder()
+      .builds('testFn')
+      .compile()
+    test.fail('Functions without callbacks should throw errors')
+  } catch (e) {
+    test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+  }
+  test.done()
+}
+
+// test that handlers are required for nodes
+exports.testMissingNodesBuilder = function (test) {
+  this.graph.add('testFn')
+
+  this.graph.newBuilder()
+    .builds('testFn')
+    .run()
+    .then(function () {
+      test.fail('Functions without callbacks should throw errors')
+    })
+    .fail(function (e) {
+      test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+    })
+    .fin(test.done.bind(test))
 }
 
 // test passing args inline vs chained
@@ -25,7 +56,7 @@ exports.testArgs = function (test) {
   this.graph.add('name-chainedArgs', returnInput)
     .args('name')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('name-inlineArgs')
     .builds('name-chainedArgs')
     .run({name: name}, function (err, result) {
@@ -58,7 +89,7 @@ exports.testFunc = function (test) {
     .args('name')
     .fn(returnInput)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('name-inlineArgs')
     .builds('name-chainedArgs')
     .run({name: name}, function (err, result) {
@@ -85,7 +116,7 @@ exports.testAddLiteralObjectThroughFunction = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -109,7 +140,7 @@ exports.testAddLiteralObjectThroughVal = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, nodeValue)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -133,7 +164,7 @@ exports.testAddLiteralObjectThroughObject = function (test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -157,7 +188,7 @@ exports.testAddLiteralNumberThroughFunction = function (test) {
   var nodeValue = 1234
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -181,7 +212,7 @@ exports.testAddLiteralNumberThroughVal = function (test) {
   var nodeValue = 1234
   this.graph.add(nodeName, nodeValue)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -205,7 +236,7 @@ exports.testAddLiteralNumberThroughObject = function (test) {
   var nodeValue = 1234
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -229,7 +260,7 @@ exports.testAddLiteralStringThroughFunction = function (test) {
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -253,7 +284,7 @@ exports.testAddLiteralStringThroughObject = function (test) {
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -284,7 +315,7 @@ exports.testAddAnonymous = function (test) {
 
   test.equal(nodeName.substr(0, nodeHint.length), nodeHint, 'Anonymous node prefix should match node hint')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(nodeName)
     .builds(nodeName2)
     .run({}, function (err, result) {
@@ -315,7 +346,7 @@ exports.testClone = function (test) {
   var clonedNode = 'name-cloned'
   this.graph.add(clonedNode, nodeName)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds(clonedNode)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -349,7 +380,7 @@ exports.testNumArguments = function (test) {
   this.graph.add('d', argCounter(2), ['a', 'b', '!c'])
   this.graph.add('e', argCounter(4), ['a', 'b', 'c', 'd'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('e')
     .run({})
     .then(function () {
@@ -374,7 +405,7 @@ exports.testNodeOrder = function (test) {
   this.graph.add('b', appender('b'), ['a'])
   this.graph.add('a', appender('a'))
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('e')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -403,7 +434,7 @@ exports.testMergedRequiredFields = function (test) {
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
   this.graph.add('obj-second', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('obj-first.name')
     .builds('obj-second.age')
     .run({obj: obj}, function (err, result) {
@@ -434,7 +465,7 @@ exports.testRequiredFieldsMembers = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('obj-first.name')
     .builds('obj-first.age')
     .run({obj: obj}, function (err, result) {
@@ -465,7 +496,7 @@ exports.testRequiredFieldEntireObject = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('obj-first')
     .run({obj: obj}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -493,7 +524,7 @@ exports.testRequiredFieldEntireObject = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('obj-first')
     .builds('obj-first.name')
     .run({obj: obj}, function (err, result) {
@@ -523,7 +554,7 @@ exports.testDisablingCache = function (test) {
   this.graph.add('count-incremented', incrementCount)
     .disableCache()
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds({'count1': 'count-incremented'})
     .builds({'count2': 'count-incremented'})
     .builds({'count3': 'count-incremented'})
@@ -555,7 +586,7 @@ exports.testEnablingCache = function (test) {
   }
   this.graph.add('count-incremented', incrementCount)
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds({'count1': 'count-incremented'})
     .builds({'count2': 'count-incremented'})
     .builds({'count3': 'count-incremented'})

@@ -4,7 +4,7 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.error = new Error('This should break')
-  this.graph = new (require ('../lib/asyncBuilder')).Graph
+  this.graph = new (require ('../lib/shepherd')).Graph
 
   done()
 }
@@ -14,12 +14,12 @@ exports.testAnonymousModifier = function (test) {
   var name = "Jeremy"
 
   this.graph.add('name-fromLiteral', this.graph.literal(name))
-    .modifiers(function (name) {
-      return name.toUpperCase()
-    })
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('name-fromLiteral')
+      .modifiers(function (name) {
+        return name.toUpperCase()
+      })
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result['name-fromLiteral'], name.toUpperCase(), 'Response should be returned through callback')
@@ -39,23 +39,32 @@ exports.testAnonymousModifier = function (test) {
 // builder can apply modifiers to built node
 exports.testModifiersFromBuilder = function (test) {
   var now = Date.now()
-  var user = {
-    name: 'Jeremy'
+  var userName = 'Jeremy'
+  var nameHolder = {
+    name: userName
   }
-  this.graph.add('user', function () {
-    return user
-  })
+  this.graph.add('user', function (name) {
+    return {
+      name: name
+    }
+  }, ['name'])
 
-  this.graph.add('addDate', function (obj) {
-    obj.date = now
+  this.graph.add('addDate', function (obj, date) {
+    obj.date = date
     return obj
-  }, ['obj'])
+  }, ['obj', 'date'])
 
-  this.graph.newAsyncBuilder()
+  this.graph.add('nameHolder', this.graph.literal(nameHolder))
+
+  this.graph.newBuilder()
+    .configure('addDate')
+      .using({date: now})
     .builds('user')
+      .using({name: 'nameHolder.name'})
       .modifiers({'addDate': 'obj'})
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
+      test.equal(result.user.name, userName, 'User name should be correct')
       test.equal(result.user.date, now, 'Response should be returned through callback')
     })
     .fail(function (err) {
@@ -80,50 +89,18 @@ exports.testModifiersFromSubgraph = function (test) {
     return user
   })
 
-  this.graph.add('addDate', function (obj) {
-    obj.date = now
+  this.graph.add('addDate', function (obj, date) {
+    obj.date = date
     return obj
-  }, ['obj'])
+  }, ['obj', 'date'])
 
   this.graph.add('user-withDate', this.graph.subgraph)
+    .configure('addDate')
+      .using({date: now})
     .builds('user-withoutDate')
       .modifiers({'addDate': 'obj'})
 
-  this.graph.newAsyncBuilder()
-    .builds('user-withDate')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
-    .then(function (result) {
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
-    })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
-
-// node can apply modifiers to itself
-exports.testModifiersFromSelf = function (test) {
-  var now = Date.now()
-  var user = {
-    name: 'Jeremy'
-  }
-  this.graph.add('user-withDate', function () {
-    return user
-  })
-  .modifiers({'addDate': 'obj'})
-
-  this.graph.add('addDate', function (obj) {
-    obj.date = now
-    return obj
-  }, ['obj'])
-
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('user-withDate')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -154,20 +131,22 @@ exports.testModifiersOrdering = function (test) {
   }, ['name'])
 
   this.graph.add("name-fromLiteral", this.graph.literal(nodeValue))
-    .modifiers('trimFirstChar')
-
-  this.graph.newAsyncBuilder()
+  this.graph.add("name-wrapped", this.graph.subgraph)
     .builds('name-fromLiteral')
+      .modifiers('trimFirstChar')
+
+  this.graph.newBuilder()
+    .builds('name-wrapped')
       .modifiers('addQuotes')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['name-fromLiteral'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through callback')
+      test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through callback')
     })
     .fail(function (err) {
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
-      test.equal(result['name-fromLiteral'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
+      test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
     })
     .then(function () {
       test.done()
@@ -184,24 +163,26 @@ exports.testModifiersWithPrefixedNodes = function (test) {
   this.graph.add('user-withDate', function () {
     return user
   })
-    .modifiers('addDate')
+  this.graph.add('user-wrapped', this.graph.subgraph)
+    .builds('user-withDate')
+      .modifiers('addDate')
 
   this.graph.add('addDate', function (userObj) {
     userObj.date = now
     return userObj
   }, ['user'])
 
-  this.graph.newAsyncBuilder()
-    .builds('user-withDate')
+  this.graph.newBuilder()
+    .builds('user-wrapped')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
+      test.equal(result['user-wrapped'].date, now, 'Response should be returned through callback')
     })
     .fail(function (err) {
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
+      test.equal(result['user-wrapped'].date, now, 'Response should be returned through promise')
     })
     .then(function () {
       test.done()
@@ -224,7 +205,7 @@ exports.testOptionalModifiers = function (test) {
     .builds('str-base')
       .modifiers('str-modifier')
 
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('str-test')
     .run({username: username}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -264,14 +245,18 @@ exports.testSubgraphAsModifier = function (test) {
     .builds('str-lower')
       .using('args.str')
 
+  this.graph.add('str-testLiteral', this.graph.subgraph, ['str'])
+
   this.graph.add('str-proxy1', this.graph.subgraph, ['str'])
-    .modifiers('str-mixed')
+    .builds('str-testLiteral')
+      .using('args.str')
+      .modifiers('str-mixed')
 
   this.graph.add('str-proxy2', this.graph.subgraph, ['str'])
 
   var startStr = 'This_is_a_test'
   var endStr = 'ThIs_iS_A_TeSt'
-  this.graph.newAsyncBuilder()
+  this.graph.newBuilder()
     .builds('str-proxy1')
       .using({str: 'inputStr'})
     .builds('str-proxy2')
@@ -293,4 +278,58 @@ exports.testSubgraphAsModifier = function (test) {
       test.done()
     })
     .end()
+}
+
+// test passing a subgraph as a modifier (using args.)
+exports.testSubgraphAsModifierWithObjects = function (test) {
+  try {
+    this.graph.add('str-upper', function (str) {
+      return str.toUpperCase()
+    }, ['str'])
+
+    this.graph.add('str-lower', function (str) {
+      return str.toLowerCase()
+    }, ['str'])
+
+    this.graph.add('str-mixed', function (str1, str2) {
+      var newStr = ''
+      for (var i = 0; i < str1.length; i++) {
+        newStr += i % 2 == 0 ? str1[i] : str2[i]
+      }
+      return newStr
+    }, ['!obj'])
+      .builds('str-upper')
+        .using('args.obj.str')
+      .builds('str-lower')
+        .using('args.obj.str')
+
+  this.graph.add('obj-testLiteral', this.graph.subgraph, ['obj'])
+
+  this.graph.add('str-proxy1', this.graph.subgraph, ['obj'])
+    .builds('obj-testLiteral')
+      .using('args.obj')
+      .modifiers('str-mixed')
+
+    var startStr = 'This_is_a_test'
+    var endStr = 'ThIs_iS_A_TeSt'
+    this.graph.newBuilder()
+      .builds('str-proxy1')
+        .using({obj: {str: startStr}})
+      .run({inputStr: startStr}, function (err, result) {
+        test.equal(err, undefined, 'Error should be undefined')
+        test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
+      })
+      .fail(function (err) {
+        test.equal(true, false, 'Error handler in promise should not be called')
+      })
+      .then(function (result) {
+        test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
+      })
+      .then(function () {
+        test.done()
+      })
+      .end()
+  } catch (e) {
+    console.error(e.stack)
+  }
 }
