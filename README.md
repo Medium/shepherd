@@ -167,8 +167,11 @@ A node may also define one or more modifiers for itself when it is added to the 
 graph.add('name-toUpper', function (name) { return name.toUpperCase() }, ['name'])
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
-  // the parent's name is 'name-fromObject' so the input into 'name-toUpper' is inferred to be 'name'
-  .modifiers('name-toUpper', 'name-someOtherModifier')
+
+graph.add('name-fromObjectUpper', graph.subgraph)
+  .builds('name-fromObject')
+    // the parent's name is 'name-fromObject' so the input into 'name-toUpper' is inferred to be 'name'
+    .modifiers('name-toUpper', 'name-someOtherModifier')
 ```
 
 You can explicitly pass in the name of the argument for the modifier by creating an object with a key of the modifer node name and a value of the argument name (think "into modifier *as* argument"):
@@ -178,9 +181,12 @@ You can explicitly pass in the name of the argument for the modifier by creating
 graph.add('str-toUpper', function (str) { return str.toUpperCase() }, ['str'])
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
-  // inferring the name wouldn't work here as 'name-fromObject' would be converted to 'name'
-  // and 'str-toUpper' is expecting 'str'
-  .modifiers({'str-toUpper': 'str'})
+
+graph.add('name-fromObjectUpper', graph.subgraph)
+  .builds('name-fromObject')
+    // inferring the name wouldn't work here as 'name-fromObject' would be converted to 'name'
+    // and 'str-toUpper' is expecting 'str'
+    .modifiers({'str-toUpper': 'str'})
 ```
 
 You may also create modifiers from functions which take the node to be modified as the first argument:
@@ -189,7 +195,10 @@ You may also create modifiers from functions which take the node to be modified 
 function toUpper(str) { return str.toUpperCase() }
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
-  .modifiers(toUpper)
+
+graph.add('name-fromObjectUpper', graph.subgraph)
+  .builds('name-fromObject')
+    .modifiers(toUpper)
 ```
 
 ### Caching and de-duplication
