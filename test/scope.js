@@ -119,3 +119,41 @@ exports.testDifferentScopePrivate = function (test) {
   }
   test.done()
 }
+
+// private nodes should not be able to be accessed from builder .builds()
+exports.testPrivateBuilds = function (test) {
+  var name = 'Jeremy'
+
+  this.graph.add('name-fromLiteral_', this.graph.literal(name))
+  try {
+    this.graph.newBuilder()
+      .builds('name-fromLiteral_')
+      .compile([])
+    test.fail("Should not be able to access private nodes from builders")
+  } catch (e) {
+    test.ok("Should not be able to access private nodes from builders")
+  }
+  test.done()
+}
+
+// private nodes should not be able to be accessed from builder .using()
+exports.testPrivateUsing = function (test) {
+  var name = 'Jeremy'
+
+  this.graph.add('str-toUpper', function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  this.graph.add('name-fromLiteral_', this.graph.literal(name))
+
+  try {
+    this.graph.newBuilder()
+      .builds('str-toUpper')
+        .using({str: 'name-fromLiteral_'})
+      .compile([])
+    test.fail("Should not be able to access private nodes from builders")
+  } catch (e) {
+    test.ok("Should not be able to access private nodes from builders")
+  }
+  test.done()
+}
