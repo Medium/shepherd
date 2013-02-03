@@ -286,3 +286,62 @@ exports.testMissingParentArg = function (test) {
   test.equal(actualError, expectedError, "Build should fail due to missing parent arg")
   test.done()
 }
+
+// test that an object can be upcast into an array
+exports.testArrayUpcast = function (test) {
+  var name = 'Jeremy'
+
+  this.graph.add('strs-toUpper', function (strs) {
+    var newStrs = []
+    for (var i = 0; i < strs.length; i++) {
+      newStrs.push(strs[i].toUpperCase())
+    }
+    return newStrs
+  }, ['strs'])
+
+  this.graph.add('name-toUpper', this.graph.subgraph, ['name'])
+    .builds('strs-toUpper')
+      .using({strs: ['args.name']})
+    .returns('strs-toUpper.0')
+
+  this.graph.newBuilder()
+    .builds('name-toUpper')
+    .run({name: name})
+    .then(function (data) {
+      test.equal(data['name-toUpper'], name.toUpperCase(), "Name should be upper-cased")
+    })
+    .fail(function (e) {
+      test.fail("Should not return through .fail()")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test that an object can be upcast into an array from a builder
+exports.testBuilderArrayUpcast = function (test) {
+  var name = 'Jeremy'
+
+  this.graph.add('strs-toUpper', function (strs) {
+    var newStrs = []
+    for (var i = 0; i < strs.length; i++) {
+      newStrs.push(strs[i].toUpperCase())
+    }
+    return newStrs
+  }, ['strs'])
+
+  this.graph.newBuilder()
+    .builds('strs-toUpper')
+      .using({strs: ['name']})
+    .run({name: name})
+    .then(function (data) {
+      test.equal(data['strs-toUpper'][0], name.toUpperCase(), "Name should be upper-cased")
+    })
+    .fail(function (e) {
+      console.error(e.stack)
+      test.fail("Should not return through .fail()")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
