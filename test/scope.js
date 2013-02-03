@@ -4,7 +4,6 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.graph = new (require ('../lib/shepherd')).Graph()
-    .enableProfiling()
   done()
 }
 

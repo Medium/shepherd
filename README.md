@@ -106,8 +106,6 @@ graph.newBuilder()
     .using('userObj.name') // this automatically figures out that it should be passed as 'name'
 ```
 
-These syntaxes
-
 ### Returning and errors
 `Graph` nodes may choose to return or throw synchronously or they may return or throw asynchronously through a promise (we currently use the node module `kew` which is a lighter implementation of much `Q` functionality) or via a node-style callback passed in as the last argument:
 
@@ -132,7 +130,7 @@ graph.add('throws-callback', function () { next(new Error('NOOOO')) })
 ```
 
 ### Literals
-Non-string literals may also be added as graph nodes by passing them directly to .add():
+Non-string / non-array literals may also be added as graph nodes by passing them directly to .add():
 
 ```javascript
 // add a number as a literal
@@ -292,6 +290,19 @@ graph.add('str-transformed', transformString)
     .using('args.str')
 ```
 
+Arrays passed as an argument through `.using()` will be interpreted as converting an array of node names into an array of values for those nodes:
+
+```javascript
+function nameFromParts(parts) {
+  return parts.join(' ')
+}
+graph.add('name-fromParts', nameFromParts, ['parts'])
+
+builder
+  .builds('name-fromParts')
+    .using({parts: ['firstName', 'middleInitial', 'lastName']})
+```
+
 ### .modifiers()
 Nodes defined via `.builds()` may have modifiers added on in a manner identical to a node adding a modifier to itself (as defined above):
 
@@ -375,6 +386,23 @@ graph.add('user-updateEmail', graph.subgraph)
   // finally, pipe the results of user-setEmail into user-save and return the result to graph.subgraph
   .builds('user-save')
     .using('user-setEmail')
+```
+
+In addition, `Graph#subgraph()` has an optional `.returns()` method which can be used to specify which of the previous arguments should be returned (including children of those arguments). `.returns()` must always be the last function in the `Graph#subgraph()` chain:
+
+```javascript
+graph.add('userId-updateEmail', graph.subgraph)
+  // takes user and email as inputs but doesn't send them to graph.subgraph
+  .args('!user', '!email')
+  // finally, pipe the results of user-setEmail into user-save and return the result to graph.subgraph
+  .builds('user-save')
+    .using('user-setEmail')
+  // set the email value on the user
+  .builds('!user-setEmail')
+    .using('args.email')
+    // validate the user has a valid e-mail address
+    .modifiers('user-validateEmail')
+  .returns('user-save.userId')
 ```
 
 Utility Nodes
