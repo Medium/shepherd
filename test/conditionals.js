@@ -7,21 +7,16 @@ exports.setUp = function (done) {
   done()
 }
 
-exports.testBasic = function (test) {
-  try {
-    this.graph.add('val-lessThan', this.graph.literal('less than'))
-    this.graph.add('val-greaterThan', this.graph.literal('greater than'))
-    this.graph.add('val-equalTo', this.graph.literal('equal to'))
+exports.testEscape = function (test) {
+  this.graph.add('val-gt', this.graph.literal('greater than'))
+  this.graph.add('val-lte', this.graph.literal('less than equal'))
 
-    this.graph.add('compare', this.graph.subgraph, ['num1', 'num2'])
-      .if('args.num1').lt('args.num2')
-        .builds('val-lessThan')
-      .elseIf('args.num1').gt('args.num2')
-        .builds('val-greaterThan')
-      .else()
-        .builds('val-equalTo')
-      .endIf()
-  } catch (e) {
-    console.error(e)
-  }
+  this.graph.add('test-conditional', this.graph.subgraph, ['val1', 'val2'])
+    .if('args.val1').gt('args.val2')
+      .builds('val-gt')
+    .else()
+      .builds('val-lte')
+    .end()
+
+  test.done()
 }
