@@ -5,14 +5,13 @@ var Q = require('kew')
 exports.setUp = function (done) {
   this.graph = new (require ('../lib/shepherd')).Graph()
     .enableProfiling()
+    .disableCallbacks()
   done()
 }
 
 exports.testProfiling = function (test) {
   function testDelay(delayMs) {
-    var defer = Q.defer()
-    setTimeout(defer.resolve.bind(defer, true), delayMs)
-    return defer.promise
+    return Q.delay(delayMs, true)
   }
 
   this.graph.add('response-delayed', testDelay, ['delayMs'])
@@ -21,7 +20,7 @@ exports.testProfiling = function (test) {
     .builds({delay10: 'response-delayed'})
       .using({delayMs: 10})
     .builds({delay35: 'response-delayed'})
-      .using({delayMs: 35})
+      .using({delayMs: 32})
     .builds({delay31: 'response-delayed'})
       .using({delayMs: 31})
     .builds({delay150: 'response-delayed'})
@@ -30,7 +29,7 @@ exports.testProfiling = function (test) {
       .using({delayMs: 418})
     .builds({delay472: 'response-delayed'})
       .using({delayMs: 472})
-    .compile()
+    .compile([])
 
   builder.run({})
     .then(function (data) {

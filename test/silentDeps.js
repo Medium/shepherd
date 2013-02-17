@@ -105,16 +105,20 @@ exports.testInvalidSilentBuildGraph = function (test) {
   test.done()
 }
 
-// test that silent dependencies cause separate function calls from the builder when different dependencies are used
+// test that silent dependencies call the same function once during builder calls but still call the private inputs
 exports.testSeparateBuilderCalls = function (test) {
-  var counter = 0
+  var counterA = 0
+  var counterB = 0
   function testCount(prefix) {
-    return prefix + counter++
+    return prefix + counterA++
   }
 
   this.graph.add('prefix-default', this.graph.literal('hello'))
   this.graph.add('count-incr', testCount, ['prefix'])
-  this.graph.add('dummy-ok', this.graph.literal('ok'))
+  this.graph.add('dummy-ok', function () {
+    counterB++
+    return true
+  })
 
   this.graph.newBuilder()
     .builds({count1: 'count-incr'})
@@ -124,7 +128,8 @@ exports.testSeparateBuilderCalls = function (test) {
     .run({})
     .then(function (data) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
-      test.equal(data.count2, 'hello1', 'count2 should be 1')
+      test.equal(data.count2, 'hello0', 'count2 should be 1')
+      test.equal(counterB, 1)
       test.done()
     })
     .fail(function (e) {
@@ -134,14 +139,18 @@ exports.testSeparateBuilderCalls = function (test) {
 
 // test that silent dependencies cause separate function calls from the builder when different dependencies are used
 exports.testSeparateBuilderCallsObject = function (test) {
-  var counter = 0
+  var counterA = 0
+  var counterB = 0
   function testCount(prefix) {
-    return prefix + counter++
+    return prefix + counterA++
   }
 
   this.graph.add('prefix-default', this.graph.literal('hello'))
   this.graph.add('count-incr', testCount, ['prefix'])
-  this.graph.add('dummy-ok', this.graph.literal('ok'))
+  this.graph.add('dummy-ok', function () {
+    counterB++
+    return true
+  })
 
   this.graph.newBuilder()
     .builds({count1: 'count-incr'})
@@ -151,7 +160,8 @@ exports.testSeparateBuilderCallsObject = function (test) {
     .run({})
     .then(function (data) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
-      test.equal(data.count2, 'hello1', 'count2 should be 1')
+      test.equal(data.count2, 'hello0', 'count2 should be 1')
+      test.equal(counterB, 1)
       test.done()
     })
     .fail(function (e) {
@@ -161,14 +171,18 @@ exports.testSeparateBuilderCallsObject = function (test) {
 
 // test that silent dependencies cause separate function calls from the builder when different dependencies are used
 exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
-  var counter = 0
+  var counterA = 0
+  var counterB = 0
   function testCount(prefix) {
-    return prefix + counter++
+    return prefix + counterA++
   }
 
   this.graph.add('prefix-default', this.graph.literal('hello'))
   this.graph.add('count-incr', testCount, ['prefix'])
-  this.graph.add('dummy-ok', this.graph.literal('ok'))
+  this.graph.add('dummy-ok', function () {
+    counterB++
+    return true
+  })
 
   this.graph.newBuilder()
     .builds({count1: 'count-incr'})
@@ -178,7 +192,8 @@ exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
     .run({})
     .then(function (data) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
-      test.equal(data.count2, 'hello1', 'count2 should be 1')
+      test.equal(data.count2, 'hello0', 'count2 should be 1')
+      test.equal(counterB, 1)
       test.done()
     })
     .fail(function (e) {
@@ -188,15 +203,22 @@ exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
 
 // test that silent dependencies cause separate function calls from subgraphs when different dependencies are used
 exports.testSeparateSubgraphCalls = function (test) {
-  var counter = 0
+  var counterA = 0
+  var counterB = 0
   function testCount(prefix) {
-    return prefix + counter++
+    return prefix + counterA++
   }
 
   this.graph.add('prefix-default', this.graph.literal('hello'))
   this.graph.add('count-incr', testCount, ['prefix'])
-  this.graph.add('dummy1', this.graph.literal('dummy1'))
-  this.graph.add('dummy2', this.graph.literal('dummy2'))
+  this.graph.add('dummy1', function () {
+    counterB++
+    return true
+  })
+  this.graph.add('dummy2', function () {
+    counterB++
+    return true
+  })
 
   this.graph.add('count-first', this.graph.subgraph)
     .builds('dummy1')
@@ -216,9 +238,10 @@ exports.testSeparateSubgraphCalls = function (test) {
     .run({})
     .then(function (data) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
-      test.equal(data.count2, 'hello1', 'count2 should be 1')
+      test.equal(data.count2, 'hello0', 'count2 should be 0')
       test.equal(data.count3, 'hello0', 'count1 should be 0')
-      test.equal(data.count4, 'hello1', 'count2 should be 1')
+      test.equal(data.count4, 'hello0', 'count2 should be 0')
+      test.equal(counterB, 2, 'Should have ran the silent deps twice')
       test.done()
     })
     .fail(function (e) {

@@ -60,6 +60,7 @@ module.exports.findBuilders = function (test) {
 
 // test searching for graph nodes
 module.exports.findNodes = function (test) {
+  var numInternalNodes = 0
   var results
   var graphNodes = {
     'name-random': 'Returns a random name',
@@ -75,7 +76,7 @@ module.exports.findNodes = function (test) {
 
   // all graph nodes
   results = this.graph.findNodes()
-  test.equals(Object.keys(results).length, 5, "Should have returned 5 results")
+  test.equals(Object.keys(results).length, 5 + numInternalNodes, "Should have returned 5 results")
   test.equals(results['name-random'], graphNodes['name-random'], 'name-random should have been returned')
   test.equals(results['name-toUpperCase'], graphNodes['name-toUpperCase'], 'name-toUpperCase should have been returned')
   test.equals(results['name-toLowerCase'], graphNodes['name-toLowerCase'], 'name-toLowerCase should have been returned')
@@ -108,13 +109,6 @@ module.exports.findNodes = function (test) {
   results = this.graph.findNodes('literal')
   test.equals(Object.keys(results).length, 1, "Should have returned 5 results")
   test.equals(results['name-fromLiteral'], graphNodes['name-fromLiteral'], 'name-fromLiteral should have been returned')
-
-  // graph nodes with to and a
-  results = this.graph.findNodes('to', 'a')
-  test.equals(Object.keys(results).length, 3, "Should have returned 5 results")
-  test.equals(results['name-toUpperCase'], graphNodes['name-toUpperCase'], 'name-toUpperCase should have been returned')
-  test.equals(results['name-toLowerCase'], graphNodes['name-toLowerCase'], 'name-toLowerCase should have been returned')
-  test.equals(results['str-toLowerCase'], graphNodes['str-toLowerCase'], 'str-toLowerCase should have been returned')
 
   test.done()
 }

@@ -578,6 +578,45 @@ exports.testDisablingCache = function (test) {
     .end()
 }
 
+// test that the disable cache flag forces a recalculation of dependencies
+exports.testDisablingCacheDependency = function (test) {
+  var obj = {
+    counter: 0
+  }
+
+  this.graph.add('obj-fromLiteral', this.graph.literal(obj))
+
+  this.graph.add('bool-incrementCounter', function (obj) {
+    obj.counter++
+    return true
+  }, ['obj']).disableCache()
+
+  this.graph.add('counter-fromObject', function (obj) {
+    return obj.counter
+  }, ['obj'])
+
+  this.graph.newBuilder()
+    .builds({'myObject': 'obj-fromLiteral'})
+    .builds({preCounter: 'counter-fromObject'})
+      .using({obj: 'myObject'})
+    .builds('bool-incrementCounter')
+      .using({obj: 'myObject'})
+    .builds({postCounter: 'counter-fromObject'})
+      .using('!bool-incrementCounter', {obj: 'myObject'})
+
+    .run()
+    .then(function (data) {
+      test.equal(data.preCounter, 0, "First counter should be 0")
+      test.equal(data.postCounter, 1, "Second counter should be 1")
+    })
+    .fail(function (e) {
+      test.fail("Failed due to an error")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // node should be cacheable
 exports.testEnablingCache = function (test) {
   var count = 0
