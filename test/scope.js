@@ -139,10 +139,12 @@ exports.testPrivateBuilds = function (test) {
 exports.testPrivateUsing = function (test) {
   var name = 'Jeremy'
 
+  this.graph.setScope("first")
   this.graph.add('str-toUpper', function (str) {
     return str.toUpperCase()
   }, ['str'])
 
+  this.graph.setScope("second")
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
   try {

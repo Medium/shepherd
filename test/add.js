@@ -406,7 +406,9 @@ exports.testNodeOrder = function (test) {
   this.graph.add('a', appender('a'))
 
   this.graph.newBuilder()
+    .builds('d')
     .builds('e')
+      .using('!d')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(output, 'abcde', 'Response should be returned through callback')
