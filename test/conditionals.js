@@ -7,8 +7,16 @@ exports.setUp = function (done) {
   done()
 }
 
+// TODO: test ignoring non-private members
+// TODO: test that not ignoring a failing node causes a failure
+// TODO: test that ignoring a node still calls the node
+// TODO: test that caching doesn't provide bad results (or maybe this should change hashes)
+
 exports.testIgnoredPrivate = function (test) {
+  counter = 0
+
   function throwsError() {
+    counter++
     throw new Error("testing")
   }
 
@@ -19,6 +27,7 @@ exports.testIgnoredPrivate = function (test) {
     .ignoreErrors('val-test')
     .run()
     .then(function () {
+      test.equal(counter, 1, "Counter should have been incremented ")
       test.ok("Successfully ignored errors")
     })
     .fail(function () {
@@ -29,50 +38,98 @@ exports.testIgnoredPrivate = function (test) {
     })
 }
 
-exports.testEscape = function (test) {
-  var err = new Error("Hello")
+exports.testFakeIf = function (test) {
+  try {
+    this.graph.add('throws-ifFalse', function (val) {
+      if (!val) throw new Error("Failed")
+      return val
+    }, ['bool'])
 
-  function throwsError() {
-    throw err
-  }
-
-  function shouldBeSkipped() {
-    test.fail("This should be skipped")
-    return false
-  }
-
-  function catchesError(val) {
-    try {
-      val.get()
-      test.fail("An error should be thrown")
-      return false
-    } catch (e) {
-      test.equal(e, err, "Error should be thrown error")
+    this.graph.add('throws-ifAnyTrue', function (vals) {
+      for (var i = 0; i < vals.length; i++) {
+        if (!!vals[i]) throw new Error("else failed") 
+      }
       return true
-    }
+    }, ['bools']).needsGetters()
+
+    this.graph.add('bool-valNotNullish', function (val) {
+      return val !== null && typeof val != 'undefined'
+    })
+
+    this.graph.newBuilder()
+
+      .builds({'!bool-if1_1': 'bool-valNotNullish'})
+        .using({val1: this.graph.literal(null)})
+      .builds({'!throws-if1_1': 'throws-ifFalse'})
+        .using('!bool-if1_1')
+      .ignoreErrors('throws-if1_1')
+
+      .builds({'!throws-if1_2': 'throws-ifAnyTrue'})
+        .using({bools: ['bool-if1_1']})
+      .ignoreErrors('throws-if1_2')
+
+      .run()
+      .then(function (data) {
+        console.log("DATA", data)
+        test.ok("Successfully ignored errors")
+      })
+      .fail(function (e) {
+        console.error(e.stack)
+        test.fail("Failed to ignore errors")
+      })
+      .fin(function () {
+        test.done()
+      })
+  } catch (e) {
+    console.error(e)
   }
+}
 
-  this.graph.add('err-thrown', throwsError)
-  this.graph.add('bool-shouldBeSkipped', shouldBeSkipped)
-  this.graph.add('bool-caught', catchesError, ['bool'])
-    .withGetters()
+exports.testBetterIf = function (test) {
+  try {
+    this.graph.add('val-echo', function (val) {
+      return val
+    }, ['val'])
+    this.graph.add('throws-ifFalse', function (val) {
+      if (!val) throw new Error("Failed")
+      return val
+    }, ['bool'])
 
-  this.graph.newBuilder()
-    .builds('!err-thrown')
-    .builds('!bool-shouldBeSkipped')
-      .using('!err-thrown')
-    .builds('bool-caught')
-      .using('bool-shouldBeSkipped')
-    .ignoreErrors('err-thrown', 'bool-shouldBeSkipped')
-    .run()
-    .then(function (data) {
-      test.equal(data['bool-caught'], true, "Error was successfully caught")
-      test.ok("Successfully ignored errors in chain")
+    this.graph.add('throws-ifAnyTrue', function (vals) {
+      for (var i = 0; i < vals.length; i++) {
+        if (!!vals[i]) throw new Error("else failed") 
+      }
+      return true
+    }, ['bools']).needsGetters()
+
+    this.graph.add('bool-valNotNullish', function (val) {
+      return val !== null && typeof val != 'undefined'
     })
-    .fail(function (e) {
-      test.fail("Error wasn't caught successfully")
-    })
-    .fin(function () {
-      test.done()
-    })
+
+    this.graph.newBuilder()
+      .if('bool-valNotNullish').using({val1: this.graph.literal(null)})
+        .builds({'bool-isNullish1': 'val-echo'})
+          .using({val: this.graph.literal(false)})
+
+      .else()
+        .builds({'bool-isNullish2': 'val-echo'})
+          .using({val: this.graph.literal(true)})
+
+      .end()
+
+      .run()
+      .then(function (data) {
+        console.log("DATA", data)
+        test.ok("Successfully ignored errors")
+      })
+      .fail(function (e) {
+        console.error(e.stack)
+        test.fail("Failed to ignore errors")
+      })
+      .fin(function () {
+        test.done()
+      })
+  } catch (e) {
+    console.error(e)
+  }
 }
