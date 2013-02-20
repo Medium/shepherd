@@ -7,6 +7,71 @@ exports.setUp = function (done) {
   done()
 }
 
+// test that when nodes are provided to a parent node, only the silent nodes runs
+exports.testOnlySilentsRun = function (test) {
+  var err = new Error('failed')
+  var failCount = 0
+
+  this.graph.add('throws-first', function () {
+    test.ok("First silent node ran")
+    failCount++
+    return Q.delay(500)
+      .then(function () {
+        throw err
+      })
+  })
+
+  this.graph.add('throws-second', function () {
+    test.ok("Second silent node ran")
+    failCount++
+    return Q.delay(500)
+      .then(function () {
+        throw err
+      })
+  })
+
+  this.graph.add('throws-third', function () {
+    test.ok("Third silent node ran")
+    failCount++
+    return Q.delay(500)
+      .then(function () {
+        throw err
+      })
+  })
+
+  this.graph.add('val-first', function () {
+    test.fail("First val ran")
+    return "NOOO"
+  })
+
+  this.graph.add('val-second', function () {
+    test.fail("Second val ran")
+    return "NOOO"
+  })
+
+  this.graph.add('test-thing', this.graph.subgraph)
+    .builds('!throws-first')
+    .builds('val-first')
+    .builds('!throws-second')
+    .builds('val-second')
+    .builds('!throws-third')
+    .returns('val-second')
+
+  this.graph.newBuilder()
+    .builds('test-thing')
+    .run()
+    .then(function (data) {
+      test.fail("This should have failed")
+    })
+    .fail(function (e) {
+      test.equal(e, err, "Error was the expected error")
+      test.equal(failCount, 3, "Three failures were recorded")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // testing invalid silent builds in the builder
 exports.testInvalidSilentBuildBuilder = function (test) {
   this.graph.add('name', this.graph.literal('Jeremy'))
