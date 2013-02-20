@@ -11,6 +11,7 @@ exports.setUp = function (done) {
 exports.testOnlySilentsRun = function (test) {
   var err = new Error('failed')
   var failCount = 0
+  var successCount = 0
 
   this.graph.add('throws-first', function () {
     test.ok("First silent node ran")
@@ -40,11 +41,13 @@ exports.testOnlySilentsRun = function (test) {
   })
 
   this.graph.add('val-first', function () {
+    successCount++
     test.fail("First val ran")
     return "NOOO"
   })
 
   this.graph.add('val-second', function () {
+    successCount++
     test.fail("Second val ran")
     return "NOOO"
   })
@@ -66,6 +69,7 @@ exports.testOnlySilentsRun = function (test) {
     .fail(function (e) {
       test.equal(e, err, "Error was the expected error")
       test.equal(failCount, 3, "Three failures were recorded")
+      test.equal(successCount, 0, "No successes were recorded")
     })
     .fin(function () {
       test.done()
