@@ -60,7 +60,7 @@ module.exports.findBuilders = function (test) {
 
 // test searching for graph nodes
 module.exports.findNodes = function (test) {
-  var numInternalNodes = 6
+  var numInternalNodes = 0
   var results
   var graphNodes = {
     'name-random': 'Returns a random name',
@@ -109,6 +109,6 @@ module.exports.findNodes = function (test) {
   results = this.graph.findNodes('literal')
   test.equals(Object.keys(results).length, 1, "Should have returned 5 results")
   test.equals(results['name-fromLiteral'], graphNodes['name-fromLiteral'], 'name-fromLiteral should have been returned')
-  
+
   test.done()
 }
