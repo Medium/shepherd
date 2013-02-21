@@ -4,132 +4,104 @@ var Q = require('kew')
 // set up a graph for testing
 exports.setUp = function (done) {
   this.graph = new (require ('../lib/shepherd')).Graph
+  this.graph.disableCallbacks()
   done()
 }
 
-// TODO: test ignoring non-private members
-// TODO: test that not ignoring a failing node causes a failure
-// TODO: test that ignoring a node still calls the node
-// TODO: test that caching doesn't provide bad results (or maybe this should change hashes)
+exports.testRawGuards = function (test) {
+  this.graph.add('throw-ifTruthy', function (val) {
+    if (val) throw new Error()
+    return true
+  }, ['val'])
 
-exports.testIgnoredPrivate = function (test) {
-  counter = 0
+  this.graph.add('throw-ifNotTruthy', function (val) {
+    if (!val) throw new Error()
+    return true
+  }, ['val'])
 
-  function throwsError() {
-    counter++
-    throw new Error("testing")
+  this.graph.add('bool-isEqual', function (str1, str2) {
+    return str1 == str2
+  }, ['str1', 'str2'])
+
+  this.graph.add('str-toUpper', function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  this.graph.add('str-toLower', function (str) {
+    return str.toLowerCase()
+  }, ['str'])
+
+  this.graph.add('str-quotes', function (str) {
+    return '"' + str + '"'
+  }, ['str'])
+
+  function debug() {
+    console.log("DEBUG", arguments)
+    return arguments[arguments.length - 1]
   }
 
-  this.graph.add('val-test', throwsError)
+  this.graph.add('str-transform', debug, ['!str', '!method'])
+    .builds({'!isUpper': 'bool-isEqual'})
+      .using({str1: 'args.str'}, {str2: this.graph.literal('upper')})
+    .builds({'!throws-isUpper': 'throw-ifNotTruthy'})
+      .using({val: 'bool-isEqual'})
+    .ignoreErrors('throws-isUpper')
+
+    .builds('str-toUpper')
+      .using('args.str')
 
   this.graph.newBuilder()
-    .builds('!val-test')
-    .ignoreErrors('val-test')
+    .builds({str1: 'str-transform'})
+      .using({str: this.graph.literal('Jeremy')}, {method: this.graph.literal('lower')})
     .run()
-    .then(function () {
-      test.equal(counter, 1, "Counter should have been incremented ")
-      test.ok("Successfully ignored errors")
+    .then(function (data) {
+      console.log(data)
     })
-    .fail(function () {
-      test.fail("Failed to ignore errors")
+    .fail(function (e) {
+      console.error(e)
+      test.fail("threw an error")
     })
     .fin(function () {
       test.done()
     })
 }
 
-exports.testFakeIf = function (test) {
-  try {
-    this.graph.add('throws-ifFalse', function (val) {
-      if (!val) throw new Error("Failed")
-      return val
-    }, ['bool'])
+/*
+exports.testGuards = function (test) {
+  this.graph.add('bool-isEqual', function (str1, str2) {
+    return str1 == str2
+  }, ['str1', 'str2'])
 
-    this.graph.add('throws-ifAnyTrue', function (vals) {
-      for (var i = 0; i < vals.length; i++) {
-        if (!!vals[i]) throw new Error("else failed") 
-      }
-      return true
-    }, ['bools']).needsGetters()
+  this.graph.add('str-toUpper', function (str) {
+    return str.toUpper()
+  }, ['str'])
 
-    this.graph.add('bool-valNotNullish', function (val) {
-      return val !== null && typeof val != 'undefined'
-    })
+  this.graph.add('str-toLower', function (str) {
+    return str.toLower()
+  }, ['str'])
 
-    this.graph.newBuilder()
+  this.graph.add('str-quotes', function (str) {
+    return '"' + str + '"'
+  }, ['str'])
 
-      .builds({'!bool-if1_1': 'bool-valNotNullish'})
-        .using({val1: this.graph.literal(null)})
-      .builds({'!throws-if1_1': 'throws-ifFalse'})
-        .using('!bool-if1_1')
-      .ignoreErrors('throws-if1_1')
+  this.graph.add('str-transform', this.graph.subgraph, ['str', 'method'])
+    .describe('str-output')
+      .builds('str-toUpper')
+        .using('args.str')
+        .when({isUpper: 'bool-isEqual'})
+          .using({str1: 'args.str'}, {str2: this.graph.literal('upper')})
 
-      .builds({'!throws-if1_2': 'throws-ifAnyTrue'})
-        .using({bools: ['bool-if1_1']})
-      .ignoreErrors('throws-if1_2')
+      .builds('str-toUpper')
+        .using('args.str')
+        .when({isLower: 'bool-isEqual'})
+          .using({str1: 'args.str'}, {str2: this.graph.literal('lower')})
 
-      .run()
-      .then(function (data) {
-        console.log("DATA", data)
-        test.ok("Successfully ignored errors")
-      })
-      .fail(function (e) {
-        console.error(e.stack)
-        test.fail("Failed to ignore errors")
-      })
-      .fin(function () {
-        test.done()
-      })
-  } catch (e) {
-    console.error(e)
-  }
+      .builds('str-toUpper')
+        .using('args.str')
+
+    .end()
+    .returns('str-output')
+
+  test.done()
 }
-
-exports.testBetterIf = function (test) {
-  try {
-    this.graph.add('val-echo', function (val) {
-      return val
-    }, ['val'])
-    this.graph.add('throws-ifFalse', function (val) {
-      if (!val) throw new Error("Failed")
-      return val
-    }, ['bool'])
-
-    this.graph.add('throws-ifAnyTrue', function (vals) {
-      for (var i = 0; i < vals.length; i++) {
-        if (!!vals[i]) throw new Error("else failed") 
-      }
-      return true
-    }, ['bools']).needsGetters()
-
-    this.graph.add('bool-valNotNullish', function (val) {
-      return val !== null && typeof val != 'undefined'
-    })
-
-    this.graph.newBuilder()
-      .if('bool-valNotNullish').using({val1: this.graph.literal(null)})
-        .builds({'bool-isNullish1': 'val-echo'})
-          .using({val: this.graph.literal(false)})
-
-      .else()
-        .builds({'bool-isNullish2': 'val-echo'})
-          .using({val: this.graph.literal(true)})
-
-      .end()
-
-      .run()
-      .then(function (data) {
-        console.log("DATA", data)
-        test.ok("Successfully ignored errors")
-      })
-      .fail(function (e) {
-        console.error(e.stack)
-        test.fail("Failed to ignore errors")
-      })
-      .fin(function () {
-        test.done()
-      })
-  } catch (e) {
-    console.error(e)
-  }
-}
+*/
