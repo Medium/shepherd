@@ -151,10 +151,7 @@ exports.testGuards = function (test) {
       .using({str: this.graph.literal('Jeremy')}, {method: this.graph.literal('upper')})
     .builds({str2: 'str-transform'})
       .using({str: this.graph.literal('Elizabeth')}, {method: this.graph.literal('lower')})
-    .builds({str3: 'str-transform'})
-      .using({str: this.graph.literal('Dan')}, {method: this.graph.literal('quotes')})
-    .builds({str4: 'str-transform'})
-      .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('quotes')})
+
     .run()
     .then(function (data) {
       console.log(data)
