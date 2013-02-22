@@ -100,6 +100,13 @@ exports.testRawGuards = function (test) {
 */
 
 exports.testGuards = function (test) {
+  var testInputs = [
+    {name: 'Jeremy', method: 'upper', output: 'JEREMY'},
+    {name: 'Elizabeth', method: 'lower', output: 'elizabeth'},
+    {name: 'Dan', method: 'quotes', output: '"Dan"'},
+    {name: 'Sho', method: 'lower', output: 'sho'},
+    {name: 'Jon', method: 'unspecified', output: 'Jon'}
+  ]
   this.graph.add('bool-isEqual', function (str1, str2) {
     return str1 == str2
   }, ['str1', 'str2'])
@@ -149,19 +156,24 @@ exports.testGuards = function (test) {
 
   this.graph.newBuilder()
     .builds({str1: 'str-transform'})
-      .using({str: this.graph.literal('Jeremy')}, {method: this.graph.literal('upper')})
+      .using({str: this.graph.literal(testInputs[0].name)}, {method: this.graph.literal(testInputs[0].method)})
     .builds({str2: 'str-transform'})
-      .using({str: this.graph.literal('Elizabeth')}, {method: this.graph.literal('lower')})
+      .using({str: this.graph.literal(testInputs[1].name)}, {method: this.graph.literal(testInputs[1].method)})
     .builds({str3: 'str-transform'})
-      .using({str: this.graph.literal('Dan')}, {method: this.graph.literal('quotes')})
+      .using({str: this.graph.literal(testInputs[2].name)}, {method: this.graph.literal(testInputs[2].method)})
     .builds({str4: 'str-transform'})
-      .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('unspecified')})
+      .using({str: this.graph.literal(testInputs[3].name)}, {method: this.graph.literal(testInputs[3].method)})
+    .builds({str5: 'str-transform'})
+      .using({str: this.graph.literal(testInputs[4].name)}, {method: this.graph.literal(testInputs[4].method)})
     .run()
     .then(function (data) {
-      console.log(data)
+      test.equal(data.str1, testInputs[0].output, data.str1 + " should be " + testInputs[0].output)
+      test.equal(data.str2, testInputs[1].output, data.str2 + " should be " + testInputs[1].output)
+      test.equal(data.str3, testInputs[2].output, data.str3 + " should be " + testInputs[2].output)
+      test.equal(data.str4, testInputs[3].output, data.str4 + " should be " + testInputs[3].output)
+      test.equal(data.str5, testInputs[4].output, data.str5 + " should be " + testInputs[4].output)
     })
     .fail(function (e) {
-      console.error(e.stack)
       test.fail("threw an error")
     })
     .fin(function () {
