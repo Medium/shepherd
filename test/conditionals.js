@@ -128,22 +128,25 @@ exports.testGuards = function (test) {
     .describe('str-output')
       .builds('str-toUpper')
         .using('args.str')
-        .when('bool-isEqual')
+        .when({isUpper: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('upper')})
+
       .builds('str-toLower')
         .using('args.str')
         .when({isLower: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('lower')})
 
       .builds('!char-fromLiteral')
-        .using({val: this.graph.literal('"')})
+            .using({val: this.graph.literal('"')})
       .builds('str-quotes')
         .using('args.str', 'char-fromLiteral')
         .when({isQuote: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('quotes')})
 
+/*
       .builds('str-echo')
         .using('args.str')
+*/
     .end()
 
   this.graph.newBuilder()
@@ -151,7 +154,10 @@ exports.testGuards = function (test) {
       .using({str: this.graph.literal('Jeremy')}, {method: this.graph.literal('upper')})
     .builds({str2: 'str-transform'})
       .using({str: this.graph.literal('Elizabeth')}, {method: this.graph.literal('lower')})
-
+    .builds({str3: 'str-transform'})
+      .using({str: this.graph.literal('Dan')}, {method: this.graph.literal('quotes')})
+    .builds({str4: 'str-transform'})
+      .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('quotes')})
     .run()
     .then(function (data) {
       console.log(data)
