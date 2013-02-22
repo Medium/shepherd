@@ -105,22 +105,22 @@ exports.testGuards = function (test) {
   }, ['str1', 'str2'])
 
   this.graph.add('str-toUpper', function (str) {
-    console.log("TO UPPER")
     return str.toUpperCase()
   }, ['str'])
 
   this.graph.add('str-toLower', function (str) {
-    console.log("TO LOWER")
     return str.toLowerCase()
   }, ['str'])
 
   this.graph.add('str-quotes', function (str, myChar) {
-    console.log("ADDING QUOTES")
     return myChar + str + myChar
   }, ['str', 'char'])
 
+  this.graph.add('str-echo', function (str) {
+    return str
+  }, ['str'])
+
   this.graph.add('char-fromLiteral', function (val) {
-    console.log("Deduped")
     return val
   }, ['val'])
 
@@ -128,32 +128,33 @@ exports.testGuards = function (test) {
     .describe('str-output')
       .builds('str-toUpper')
         .using('args.str')
-        .when({isUpper: 'bool-isEqual'})
+        .when('bool-isEqual')
           .using({str1: 'args.method'}, {str2: this.graph.literal('upper')})
-/*
       .builds('str-toLower')
         .using('args.str')
         .when({isLower: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('lower')})
 
+      .builds('!char-fromLiteral')
+        .using({val: this.graph.literal('"')})
       .builds('str-quotes')
-        .using('args.str')
-        .when({isLower: 'bool-isEqual'})
+        .using('args.str', 'char-fromLiteral')
+        .when({isQuote: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('quotes')})
-*/
+
+      .builds('str-echo')
+        .using('args.str')
     .end()
 
   this.graph.newBuilder()
-    .builds({strUpper: 'str-transform'})
+    .builds({str1: 'str-transform'})
       .using({str: this.graph.literal('Jeremy')}, {method: this.graph.literal('upper')})
-      /*
-    .builds({strLower: 'str-transform'})
+    .builds({str2: 'str-transform'})
       .using({str: this.graph.literal('Elizabeth')}, {method: this.graph.literal('lower')})
-    .builds({strQuotes: 'str-transform'})
+    .builds({str3: 'str-transform'})
       .using({str: this.graph.literal('Dan')}, {method: this.graph.literal('quotes')})
-    .builds({strQuotes2: 'str-transform'})
+    .builds({str4: 'str-transform'})
       .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('quotes')})
-      */
     .run()
     .then(function (data) {
       console.log(data)
