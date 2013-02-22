@@ -143,10 +143,8 @@ exports.testGuards = function (test) {
         .when({isQuote: 'bool-isEqual'})
           .using({str1: 'args.method'}, {str2: this.graph.literal('quotes')})
 
-/*
       .builds('str-echo')
         .using('args.str')
-*/
     .end()
 
   this.graph.newBuilder()
@@ -157,7 +155,7 @@ exports.testGuards = function (test) {
     .builds({str3: 'str-transform'})
       .using({str: this.graph.literal('Dan')}, {method: this.graph.literal('quotes')})
     .builds({str4: 'str-transform'})
-      .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('quotes')})
+      .using({str: this.graph.literal('Sho')}, {method: this.graph.literal('unspecified')})
     .run()
     .then(function (data) {
       console.log(data)
