@@ -42,7 +42,7 @@ exports.testGuardsWithElse = function (test) {
   }, ['val'])
 
   this.graph.add('str-transform', this.graph.subgraph, ['str', 'method'])
-    .describe('str-output')
+    .define('str-output')
       .builds('str-toUpper')
         .using('args.str')
         .when({isUpper: 'bool-isEqual'})
@@ -125,7 +125,7 @@ exports.testGuardsWithoutElse = function (test) {
   }, ['val'])
 
   this.graph.add('str-transform', this.graph.subgraph, ['str', 'method'])
-    .describe('str-output')
+    .define('str-output')
       .builds('str-toUpper')
         .using('args.str')
         .when({isUpper: 'bool-isEqual'})
@@ -205,7 +205,7 @@ exports.testGuardsWithSyntaxError = function (test) {
   }, ['val'])
 
   this.graph.add('str-transform', this.graph.subgraph, ['str', 'method'])
-    .describe('str-output')
+    .define('str-output')
       .builds('str-toUpper')
         .using('args.str')
         .when({isUpper: 'bool-isEqual'})
