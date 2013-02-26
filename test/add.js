@@ -552,7 +552,7 @@ exports.testDisablingCache = function (test) {
     return ++count
   }
   this.graph.add('count-incremented', incrementCount)
-    .disableCache()
+    .disableNodeCache()
 
   this.graph.newBuilder()
     .builds({'count1': 'count-incremented'})
@@ -589,7 +589,7 @@ exports.testDisablingCacheDependency = function (test) {
   this.graph.add('bool-incrementCounter', function (obj) {
     obj.counter++
     return true
-  }, ['obj']).disableCache()
+  }, ['obj']).disableNodeCache()
 
   this.graph.add('counter-fromObject', function (obj) {
     return obj.counter
@@ -632,7 +632,7 @@ exports.testDisablingCacheRecursiveDependency = function (test) {
       users[user.id] = user
       return true
     }, ['user'])
-    .disableCache()
+    .disableNodeCache()
 
     this.graph.add('bool-createUser', this.graph.subgraph, ['user'])
       .builds('bool-saveUser_')
