@@ -173,6 +173,7 @@ exports.testRemappingNodeDependency = function (test) {
       test.equal(result['username-test'], nodeValue.name, 'Response should be returned through callback')
     })
     .fail(function (err) {
+      console.error(err.stack)
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
@@ -212,6 +213,7 @@ exports.testBuilderOptionalNode = function (test) {
       test.equal(output, 'lower', 'Only lower should have been ran')
     })
     .fail(function (err) {
+      console.error(err.stack)
       test.equal(true, false, 'Error handler in promise should not be called')
     })
     .then(function (result) {
