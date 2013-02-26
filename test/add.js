@@ -578,6 +578,105 @@ exports.testDisablingCache = function (test) {
     .end()
 }
 
+// test that the disable cache flag forces a recalculation of dependencies
+exports.testDisablingCacheDependency = function (test) {
+  var obj = {
+    counter: 0
+  }
+
+  this.graph.add('obj-fromLiteral', this.graph.literal(obj))
+
+  this.graph.add('bool-incrementCounter', function (obj) {
+    obj.counter++
+    return true
+  }, ['obj']).disableCache()
+
+  this.graph.add('counter-fromObject', function (obj) {
+    return obj.counter
+  }, ['obj'])
+
+  this.graph.newBuilder()
+    .builds({'myObject': 'obj-fromLiteral'})
+    .builds({preCounter: 'counter-fromObject'})
+      .using({obj: 'myObject'})
+    .builds('bool-incrementCounter')
+      .using({obj: 'myObject'})
+    .builds({postCounter: 'counter-fromObject'})
+      .using('!bool-incrementCounter', {obj: 'myObject'})
+
+    .run()
+    .then(function (data) {
+      test.equal(data.preCounter, 0, "First counter should be 0")
+      test.equal(data.postCounter, 1, "Second counter should be 1")
+    })
+    .fail(function (e) {
+      test.fail("Failed due to an error")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+exports.testDisablingCacheRecursiveDependency = function (test) {
+  try {
+    this.graph.disableCallbacks()
+
+    var counter = 0
+    var users = {}
+    var newUser = {
+      id: "TestUser",
+      name: "Fred"
+    }
+
+    this.graph.add('bool-saveUser_', function (user) {
+      users[user.id] = user
+      return true
+    }, ['user'])
+    .disableCache()
+
+    this.graph.add('bool-createUser', this.graph.subgraph, ['user'])
+      .builds('bool-saveUser_')
+        .using('args.user')
+
+    this.graph.add('user-byUserId', function (userId) {
+      counter++
+      return users[userId]
+    }, ['userId'])
+
+    this.graph.newBuilder()
+      // should call normally
+      .builds({preSave1: 'user-byUserId'})
+        .using({userId: 'inputUser.id'})
+      // should deduplicate with the first call
+      .builds({preSave2: 'user-byUserId'})
+        .using({userId: 'inputUser.id'})
+      // should update the object
+      .builds('bool-createUser')
+        .using({user: 'inputUser'})
+      // should cause a new load due to bool-saveUser_ not caching
+      .builds({postSave1: 'user-byUserId'})
+        .using('!bool-createUser', {userId: 'inputUser.id'})
+      // should cause a new load due to bool-saveUser_ not caching
+      .builds({postSave2: 'user-byUserId'})
+        .using('!bool-createUser', {userId: 'inputUser.id'})
+      .run({inputUser: newUser})
+      .then(function (data) {
+        test.equal(data.preSave1, undefined, "User pre-save should be undefined")
+        test.equal(data.preSave1, undefined, "User pre-save should be undefined")
+        test.equal(data.postSave1, newUser, "User post-save should be defined")
+        test.equal(data.postSave2, newUser, "User post-save should be defined")
+      })
+      .fail(function (e) {
+        test.fail("Failed due to an error", e.stack)
+      })
+      .fin(function () {
+        test.done()
+      })
+  } catch (e) {
+    console.error(e.stack)
+  }
+}
+
 // node should be cacheable
 exports.testEnablingCache = function (test) {
   var count = 0
