@@ -91,6 +91,34 @@ exports.testDeepFreeze = function (test) {
     })
 }
 
+// test that deep freeze doesn't work for private nodes
+exports.testDeepFreezePrivate = function (test) {
+  this.graph.add('user-default_', this.graph.literal({name: 'Jeremy'}))
+
+  this.graph.add('user-mutate_', function (user) {
+    user.name = "MUTTTTTAAAAATTTEEE"
+    return user
+  }, ['user'])
+
+  this.graph.add('user-mutated', this.graph.subgraph)
+    .builds('user-default_')
+      .modifiers('user-mutate_')
+
+  this.graph.newBuilder()
+    .freezeOutputs()
+    .builds('user-mutated')
+    .run()
+    .then(function (data) {
+      test.equal(data['user-mutated'].name, 'MUTTTTTAAAAATTTEEE', "Name should have changed")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // test that deep freeze throws an error if used with 'use strict'
 exports.testDeepFreezeError = function (test) {
   "use strict"
