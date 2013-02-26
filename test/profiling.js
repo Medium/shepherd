@@ -5,14 +5,13 @@ var Q = require('kew')
 exports.setUp = function (done) {
   this.graph = new (require ('../lib/shepherd')).Graph()
     .enableProfiling()
+    .disableCallbacks()
   done()
 }
 
 exports.testProfiling = function (test) {
   function testDelay(delayMs) {
-    var defer = Q.defer()
-    setTimeout(defer.resolve.bind(defer, true), delayMs)
-    return defer.promise
+    return Q.delay(delayMs, true)
   }
 
   this.graph.add('response-delayed', testDelay, ['delayMs'])
