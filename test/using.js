@@ -318,6 +318,35 @@ exports.testArrayUpcast = function (test) {
     })
 }
 
+// test that an empty array can be passed in
+exports.testArrayUpcastEmpty = function (test) {
+  this.graph.add('strs-toUpper', function (strs) {
+    var newStrs = []
+    for (var i = 0; i < strs.length; i++) {
+      newStrs.push(strs[i].toUpperCase())
+    }
+    return newStrs
+  }, ['strs'])
+
+  this.graph.add('name-toUpper', this.graph.subgraph)
+    .builds('strs-toUpper')
+      .using({strs: []})
+    .returns('strs-toUpper.0')
+
+  this.graph.newBuilder()
+    .builds('name-toUpper')
+    .run()
+    .then(function (data) {
+      test.equal(data['name-toUpper'], undefined, "Name should be undefined")
+    })
+    .fail(function (e) {
+      test.fail("Should not return through .fail()", e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // test that an object can be upcast into an array from a builder
 exports.testBuilderArrayUpcast = function (test) {
   var name = 'Jeremy'
