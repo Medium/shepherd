@@ -200,11 +200,11 @@ graph.add('name-fromObjectUpper', graph.subgraph)
 ```
 
 ### Caching and de-duplication
-By default, a `Builder` instance will merge all nodes that it finds have the exact same handler function when it runs through its compile() phase and these functions will only ever run once during a `Builder#run` call. If you wish to make sure that a node is ran every time it is referenced by another node, you can call `.disableCache()` on the node when adding the node to the `Graph`:
+By default, a `Builder` instance will merge all nodes that it finds have the exact same handler function when it runs through its compile() phase and these functions will only ever run once during a `Builder#run` call. If you wish to make sure that a node is ran every time it is referenced by another node, you can call `.disableNodeCache()` on the node when adding the node to the `Graph`:
 
 ```javascript
 graph.add("timestamp-nowMillis", Date.now)
-  .disableCache()
+  .disableNodeCache()
 ```
 
 ### A word about chaining
