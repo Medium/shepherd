@@ -4,7 +4,7 @@ var shepherd = require('../lib/shepherd')
 // To get started with **shepherd**, you need to create a `Graph`.
 // A `Graph` is a registry of all of the things you want to be able to do (units of work).
 // First, instantiate the Graph:
-var graph = new shepherd.Graph
+var graph = new shepherd.Graph()
 
 // Next, you need to add some nodes to the `Graph` which perform said units of work.
 // Let's add 2 nodes to the Graph:
