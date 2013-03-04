@@ -18,7 +18,7 @@
   }
   , "dependencies": {
     "graphviz": "0.0.8",
-    "kew": "0.1.1",
+    "kew": "0.1.2",
     "oid": "0.5.0"
   }
   , "devDependencies": {
