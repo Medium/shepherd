@@ -248,3 +248,38 @@ exports.testSeparateSubgraphCalls = function (test) {
       console.error(e)
     })
 }
+
+// test that silent dependencies with child members fail
+exports.testDynamicGetters = function (test) {
+  try {
+
+  var error = new Error("NO")
+  var obj = {}
+  obj.__defineGetter__("shouldThrow", function(){
+    throw error
+  })
+  this.graph.add('obj-fromLiteral', this.graph.literal(obj))
+
+  this.graph.add('test-shouldThrow', function () {
+    test.fail("Dependencies should have failed")
+    return false
+  })
+    .builds('!obj-fromLiteral.shouldThrow')
+
+  this.graph.newBuilder()
+    .builds('test-shouldThrow')
+    .run()
+    .then(function () {
+      test.fail("Should have thrown an error")
+    })
+    .fail(function (e) {
+      test.ok("Should have thrown an error")
+    })
+    .fin(function () {
+      test.done()
+    })
+
+  } catch (e) {
+    console.error(e.stack)
+  }
+}
