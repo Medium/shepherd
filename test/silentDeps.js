@@ -283,3 +283,33 @@ exports.testDynamicGetters = function (test) {
     console.error(e.stack)
   }
 }
+
+// guarantee that silent nodes w/ disableNodeCache() don't force cache disabling
+// for non-silent nodes
+exports.testDeduplicationSilentDeps = function (test) {
+  var counter = 0
+  this.graph.add('bool-incrementCounter', function () {
+    counter++
+    return true
+  })
+
+  this.graph.add('bool-disablesCache', function () {
+    return true
+  })
+  .disableNodeCache()
+
+  this.graph.newBuilder()
+    .builds('!bool-disablesCache')
+    .builds({counter1: 'bool-incrementCounter'})
+    .builds({counter2: 'bool-incrementCounter'})
+    .run({})
+    .then(function (data) {
+      test.equal(counter, 1, "Counter should only have been incremented once")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
