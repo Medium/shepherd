@@ -246,3 +246,101 @@ exports.testGuardsWithSyntaxError = function (test) {
       test.done()
     })
 }
+
+// test that .when() can verify the existence of an input
+exports.testInputExists = function (test) {
+  var counter = 0
+  var users = {
+    'aaa': {name: 'Jeremy'},
+    'bbb': {name: 'Fred'}
+  }
+
+  this.graph.add('user-byUserId', function (userId) {
+    counter++
+    return users[userId]
+  }, ['userId'])
+
+  this.graph.add('name-forUserId', function (user) {
+    if (!user) return undefined
+    return user.name
+  }, ['!userId'])
+    .define('user')
+      .builds('user-byUserId')
+        .using('args.userId')
+      .when('args.userId')
+    .end()
+
+  this.graph.newBuilder()
+    .builds({nameA: 'name-forUserId'})
+      .using({userId: this.graph.literal('aaa')})
+    .builds({nameB: 'name-forUserId'})
+      .using({userId: this.graph.literal('bbb')})
+    .builds({nameC: 'name-forUserId'})
+      .using({userId: this.graph.literal(undefined)})
+    .run({})
+    .then(function (data) {
+      test.equal(data.nameA, users.aaa.name, "First user should be returned")
+      test.equal(data.nameB, users.bbb.name, "Second user should be returned")
+      test.equal(data.nameC, undefined, "Third user should be undefined")
+      test.equal(counter, 2, "User retrieval function should only have been called twice")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test that .when() can verify the existence of an existing node
+exports.testExistingNodeExists = function (test) {
+  var counter = 0
+  var users = {
+    'aaa': {name: 'Jeremy'},
+    'bbb': {name: 'Fred'}
+  }
+
+  this.graph.add('userId-fromInput', function (userId) {
+    return userId
+  }, ['userId'])
+
+  this.graph.add('user-byUserId', function (userId) {
+    counter++
+    return users[userId]
+  }, ['userId'])
+
+  this.graph.add('name-forUserId', function (user) {
+    if (!user) return undefined
+    return user.name
+  }, ['!userId'])
+    .builds('!userId-fromInput')
+      .using('args.*')
+    .define('user')
+      .builds('user-byUserId')
+        .using('userId-fromInput')
+      .when('userId-fromInput')
+    .end()
+
+  this.graph.newBuilder()
+    .builds({nameA: 'name-forUserId'})
+      .using({userId: this.graph.literal('aaa')})
+    .builds({nameB: 'name-forUserId'})
+      .using({userId: this.graph.literal('bbb')})
+    .builds({nameC: 'name-forUserId'})
+      .using({userId: this.graph.literal(undefined)})
+    .run({})
+    .then(function (data) {
+      test.equal(data.nameA, users.aaa.name, "First user should be returned")
+      test.equal(data.nameB, users.bbb.name, "Second user should be returned")
+      test.equal(data.nameC, undefined, "Third user should be undefined")
+      test.equal(counter, 2, "User retrieval function should only have been called twice")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+

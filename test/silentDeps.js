@@ -284,6 +284,8 @@ exports.testDynamicGetters = function (test) {
   }
 }
 
+// guarantee that silent nodes w/ disableNodeCache() don't force cache disabling
+// for non-silent nodes
 exports.testDeduplicationSilentDeps = function (test) {
   var counter = 0
   this.graph.add('bool-incrementCounter', function () {
