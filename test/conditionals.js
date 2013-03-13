@@ -343,4 +343,31 @@ exports.testExistingNodeExists = function (test) {
     })
 }
 
+// test that unless works as expected
+exports.testUnless = function (test) {
+  this.graph.add('user-addId_', function (user) {
+    user.id = Math.floor(Math.random() * 100000) + 1
+  }, ['user'])
 
+  this.graph.add('user-addId', this.graph.subgraph, ['user'])
+    .define('userWithId')
+      .builds('user-addId_')
+        .using('args.user')
+        .unless('args.user.id')
+    .end()
+    .returns('args.user')
+
+  this.graph.newBuilder()
+    .builds({user1: 'user-addId'})
+      .using({user: this.graph.literal({name: "Jeremy"})})
+    .builds({user2: 'user-addId'})
+      .using({user: this.graph.literal({id: 111, name: "Jon"})})
+    .run()
+    .then(function (data) {
+      test.equal(data.user1.id > 0, true, "User1 has a new id")
+      test.equal(data.user2.id, 111, "User2 has its existing id")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
