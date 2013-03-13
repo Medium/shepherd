@@ -68,7 +68,9 @@ exports.testGetBuilders = function (test) {
 
 // test that deep freeze works and prevents object mutations
 exports.testDeepFreeze = function (test) {
-  this.graph.add('user-default', this.graph.literal({name: 'Jeremy'}))
+  this.graph.add('user-default', function () {
+    return {name: 'Jeremy'}
+  })
 
   this.graph.add('user-mutate', function (user) {
     user.name = "MUTTTTTAAAAATTTEEE"
@@ -122,7 +124,9 @@ exports.testDeepFreezePrivate = function (test) {
 // test that deep freeze throws an error if used with 'use strict'
 exports.testDeepFreezeError = function (test) {
   "use strict"
-  this.graph.add('user-default', this.graph.literal({name: 'Jeremy'}))
+  this.graph.add('user-default', function () {
+    return {name: 'Jeremy'}
+  })
 
   this.graph.add('user-mutate', function (user) {
     user.name = "MUTTTTTAAAAATTTEEE"
