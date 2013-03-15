@@ -106,16 +106,7 @@ exports.testThrowWithGraphInfo = function (test) {
 
   this.graph.newBuilder('builtToFail')
     .builds('third')
-    .run({}, function (err, result) {
-      var graphInfo = err.graphInfo
-      test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
-
-      var failureNodes = graphInfo.failureNodeChain
-      test.equal(failureNodes[0].originalNodeName, 'throws', 'throws should be the first node in the chain')
-      test.equal(failureNodes[1].originalNodeName, 'first', 'first should be the second node in the chain')
-      test.equal(failureNodes[2].originalNodeName, 'second', 'second should be the third node in the chain')
-      test.equal(failureNodes[3].originalNodeName, 'third', 'third should be the fourth node in the chain')
-    })
+    .run()
     .then(function (result) {
       test.equal(result, undefined, 'Result should not be returned through promise')
     })
@@ -124,10 +115,12 @@ exports.testThrowWithGraphInfo = function (test) {
       test.equal(graphInfo.builderName, 'builtToFail', 'builder name should be builtToFail')
 
       var failureNodes = graphInfo.failureNodeChain
-      test.equal(failureNodes[0].originalNodeName, 'throws', 'throws should be the first node in the chain')
-      test.equal(failureNodes[1].originalNodeName, 'first', 'first should be the second node in the chain')
-      test.equal(failureNodes[2].originalNodeName, 'second', 'second should be the third node in the chain')
-      test.equal(failureNodes[3].originalNodeName, 'third', 'third should be the fourth node in the chain')
+      var keys = ['throws', 'first', 'second', 'third']
+      for (var i = 0; i < keys.length; i++) {
+        for (var key in failureNodes[i]) {
+          test.equal(key, keys[i], "Nodes should return in the appropriate order")
+        }
+      }
     })
     .then(function () {
       test.done()

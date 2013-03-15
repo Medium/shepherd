@@ -313,3 +313,43 @@ exports.testDeduplicationSilentDeps = function (test) {
       test.done()
     })
 }
+
+// Test that recursive dependencies are deduplicated
+exports.testRecursiveDependencyError = function (test) {
+  this.graph.add('throws-first', function () {
+    throw new Error('nooo')
+  })
+
+  this.graph.add('throws-second', this.graph.subgraph)
+    .builds('!throws-first')
+
+  this.graph.add('throws-third', this.graph.subgraph)
+    .builds('!throws-first')
+    .builds('!throws-second')
+
+  var builder = this.graph.newBuilder('test')
+    .builds('!throws-first')
+    .builds('!throws-second')
+    .builds('!throws-third')
+
+  var compiledNodes = builder.getCompiledNodes()
+  test.equal(compiledNodes['builderOutput-test_1'].inputs['throws-first'], undefined, "Dependency should have been deduplicated")
+  test.equal(compiledNodes['builderOutput-test_1'].inputs['throws-second'], undefined, "Dependency should have been deduplicated")
+    
+  builder.run()
+    .then(function () {
+      test.fail("Should have thrown an error")
+    })
+    .fail(function (e) {
+      var failureNodes = e.graphInfo.failureNodeChain
+      var keys = ['throws-first', 'throws-second', 'throws-third', 'builderOutput-test_1']
+      for (var i = 0; i < keys.length; i++) {
+        for (var key in failureNodes[i]) {
+          test.equal(key, keys[i], "Nodes should return in the appropriate order")
+        }
+      }
+    })
+    .fin(function () {
+      test.done()
+    })
+}
