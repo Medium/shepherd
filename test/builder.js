@@ -225,3 +225,19 @@ exports.testBuilderOptionalNode = function (test) {
     })
     .end()
 }
+
+// test that builds can be mapped directly to literals
+exports.testBuildLiteral = function (test) {
+  this.graph.newBuilder()
+    .builds({filterBy: this.graph.literal('hello')})
+    .run()
+    .then(function (data) {
+      test.equal(data.filterBy, 'hello', "Value should match the literal")
+    })
+    .fail(function (e) {
+      test.fail("Value should match the literal")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
