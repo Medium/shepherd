@@ -26,7 +26,7 @@ exports.testInputThroughSubgraphLiterals = function (test) {
 
   this.graph.add('user-newFromSubgraph', this.graph.subgraph)
     .builds('user-new')
-      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
+      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email:this.graph.literal(this.email)})
 
   this.graph.newBuilder()
     .builds('user-newFromSubgraph')
@@ -113,7 +113,7 @@ exports.testInputThroughBuilderLiterals = function (test) {
 
   this.graph.newBuilder()
     .builds('user-new')
-      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
+      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: this.graph.literal(this.email)})
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
 

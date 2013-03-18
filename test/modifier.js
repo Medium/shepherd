@@ -201,7 +201,7 @@ exports.testOptionalModifiers = function (test) {
 
   this.graph.add("str-test", this.graph.subgraph)
     .builds('?str-modifier')
-      .using({'modifier': {_literal: 'lower'}})
+      .using({'modifier': this.graph.literal('lower')})
     .builds('str-base')
       .modifiers('str-modifier')
 
@@ -314,16 +314,16 @@ exports.testSubgraphAsModifierWithObjects = function (test) {
     var endStr = 'ThIs_iS_A_TeSt'
     this.graph.newBuilder()
       .builds('str-proxy1')
-        .using({obj: {str: startStr}})
+        .using({obj: this.graph.literal({str: startStr})})
       .run({inputStr: startStr}, function (err, result) {
         test.equal(err, undefined, 'Error should be undefined')
         test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
       })
-      .fail(function (err) {
-        test.equal(true, false, 'Error handler in promise should not be called')
-      })
       .then(function (result) {
         test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
+      })
+      .fail(function (err) {
+        test.equal(true, false, 'Error handler in promise should not be called')
       })
       .then(function () {
         test.done()
