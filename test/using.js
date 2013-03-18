@@ -374,3 +374,31 @@ exports.testBuilderArrayUpcast = function (test) {
       test.done()
     })
 }
+
+// test that an object can be built from other objects
+exports.testBuilderObjectUpcast = function (test) {
+  var name = 'Jeremy'
+  var age = 29
+
+  this.graph.add('user-echo', this.graph.subgraph, ['user'])
+
+  this.graph.add('user-fromNameAndAge', this.graph.subgraph, ['name', 'age'])
+    .builds('user-echo')
+      .using({user: {name: 'args.name', age: 'args.age'}})
+
+  this.graph.newBuilder()
+    .builds('user-fromNameAndAge')
+      .using({name: this.graph.literal(name)}, {age: this.graph.literal(age)})
+    .run()
+    .then(function (data) {
+      test.equal(data['user-fromNameAndAge'].name, name, "Name should be returned")
+      test.equal(data['user-fromNameAndAge'].age, age, "Age should be returned")
+    })
+    .fail(function (e) {
+      console.error(e.stack)
+      test.fail("Should not return through .fail()")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
