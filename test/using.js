@@ -26,7 +26,7 @@ exports.testInputThroughSubgraphLiterals = function (test) {
 
   this.graph.add('user-newFromSubgraph', this.graph.subgraph)
     .builds('user-new')
-      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
+      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email:this.graph.literal(this.email)})
 
   this.graph.newBuilder()
     .builds('user-newFromSubgraph')
@@ -113,7 +113,7 @@ exports.testInputThroughBuilderLiterals = function (test) {
 
   this.graph.newBuilder()
     .builds('user-new')
-      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: {_literal: this.email}})
+      .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: this.graph.literal(this.email)})
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
 
@@ -365,6 +365,34 @@ exports.testBuilderArrayUpcast = function (test) {
     .run({name: name})
     .then(function (data) {
       test.equal(data['strs-toUpper'][0], name.toUpperCase(), "Name should be upper-cased")
+    })
+    .fail(function (e) {
+      console.error(e.stack)
+      test.fail("Should not return through .fail()")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test that an object can be built from other objects
+exports.testBuilderObjectUpcast = function (test) {
+  var name = 'Jeremy'
+  var age = 29
+
+  this.graph.add('user-echo', this.graph.subgraph, ['user'])
+
+  this.graph.add('user-fromNameAndAge', this.graph.subgraph, ['name', 'age'])
+    .builds('user-echo')
+      .using({user: {name: 'args.name', age: 'args.age'}})
+
+  this.graph.newBuilder()
+    .builds('user-fromNameAndAge')
+      .using({name: this.graph.literal(name)}, {age: this.graph.literal(age)})
+    .run()
+    .then(function (data) {
+      test.equal(data['user-fromNameAndAge'].name, name, "Name should be returned")
+      test.equal(data['user-fromNameAndAge'].age, age, "Age should be returned")
     })
     .fail(function (e) {
       console.error(e.stack)
