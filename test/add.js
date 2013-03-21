@@ -15,6 +15,78 @@ exports.testFunction = function (test) {
   test.done()
 }
 
+// test that literals deduplicate correctly
+exports.testLiteralDeduplication = function (test) {
+  this.graph.add('name-a', this.graph.literal('Jeremy'))
+  this.graph.add('name-b', this.graph.literal('Jeremy'))
+  var counter = 0
+
+  this.graph.add('name-echo', function (name) {
+    counter++
+    return name
+  }, ['name'])
+
+  this.graph.newBuilder()
+    .builds({nameA: 'name-echo'})
+      .using('name-a')
+    .builds({nameB: 'name-echo'})
+      .using('name-b')
+    .run()
+    .then(function (data) {
+      test.equal(data.nameA, 'Jeremy', "Name should match")
+      test.equal(data.nameB, 'Jeremy', "Name should match")
+      test.equal(counter, 1, "Echo should only have ran once")
+    })
+    .fail(function (e) {
+      test.fail("An error was returned")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test that adding the same node twice fails
+exports.testAddTwice = function (test) {
+  this.graph.add('a', function () {
+    return 1
+  })
+
+  try {
+    this.graph.add('a', function () {
+      return 2
+    })
+    test.fail("Should have failed due to existing node")
+  } catch (e) {
+    test.ok(e.message, "This node already exists \"a\"", "Should have failed due to existing node")
+  }
+
+  test.done()
+}
+
+// test that force adding a node overrides the existing value
+exports.testForceAdd = function (test) {
+  this.graph.add('a', function () {
+    return 1
+  })
+
+  this.graph.add('+a', function () {
+    return 2
+  })
+
+  this.graph.newBuilder()
+    .builds('a')
+    .run()
+    .then(function (data) {
+      test.equal(data['a'], 2, "A should have been overwritten")
+    })
+    .fail(function (e) {
+      test.fail("An error occurred")
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // test that handlers are required for nodes
 exports.testMissingNodesGraph = function (test) {
   this.graph.add('testFn')
@@ -729,6 +801,8 @@ exports.testHyphenatedNames = function (test) {
   } catch (e) {
     test.ok(true, "Verified unable to add 'test-extra-delimited' node")
   }
+
+  this.graph.add('+test-extra-delimited', this.graph.literal('not ok'))
 
   try {
     this.graph.add('-prefixed', this.graph.literal('not ok'))
