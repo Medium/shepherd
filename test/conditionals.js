@@ -84,7 +84,7 @@ exports.testGuardsWithElse = function (test) {
       test.equal(data.str5, testInputs[4].output, data.str5 + " should be " + testInputs[4].output)
     })
     .fail(function (e) {
-      test.fail("threw an error")
+      test.fail("threw an error", e.graphInfo)
     })
     .fin(function () {
       test.done()

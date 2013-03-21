@@ -7,6 +7,19 @@ exports.setUp = function (done) {
   done()
 }
 
+// test that builder names are required
+exports.testRequiredBuilderNames = function (test) {
+  this.graph.enforceBuilderNames()
+
+  try {
+    this.graph.newBuilder()
+    test.fail("Should have thrown an error due to a missing name")
+  } catch (e) {
+    test.equal(e.message, "A builder name is required", "Should have thrown an error due to a missing name")
+  }
+  test.done()
+}
+
 // should throw an error if a node is missing
 exports.testMissingBuilderNode = function (test) {
   this.graph.newBuilder()
