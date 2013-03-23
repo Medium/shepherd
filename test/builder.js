@@ -25,13 +25,13 @@ exports.testMissingBuilderNode = function (test) {
   this.graph.newBuilder()
     .builds('user')
     .run({}, function (err, result) {
-      test.equal(err.message, "Unable to find node 'user'", 'Error should be defined')
+      test.ok(/Node 'user' was not found/.test(err.message), 'Error should be defined: ' + err)
     })
     .then(function () {
       test.equal(true, false, '.then() should not be called for promise')
     })
     .fail(function (err) {
-      test.equal(err.message, "Unable to find node 'user'", 'Error should be defined')
+      test.ok(/Node 'user' was not found/.test(err.message), 'Error should be defined: ' + err)
     })
     .then(function () {
       test.done()

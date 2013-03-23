@@ -97,7 +97,8 @@ exports.testMissingNodesGraph = function (test) {
       .compile()
     test.fail('Functions without callbacks should throw errors')
   } catch (e) {
-    test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+    test.equal(e.message.indexOf('requires a callback') > 0, true,
+               'Functions without callbacks should throw different errors: ' + e)
   }
   test.done()
 }
@@ -113,7 +114,8 @@ exports.testMissingNodesBuilder = function (test) {
       test.fail('Functions without callbacks should throw errors')
     })
     .fail(function (e) {
-      test.equal(e.message.indexOf('requires a callback') > 0, true, 'Functions without callbacks should throw errors')
+      test.equal(e.message.indexOf('requires a callback') > 0, true,
+                 'Functions without callbacks should throw different errors: ' + e)
     })
     .fin(test.done.bind(test))
 }
@@ -575,7 +577,7 @@ exports.testRequiredFieldEntireObject = function (test) {
       test.equal(result['obj-first'], obj, 'Response should be returned through callback')
     })
     .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
+      test.equal(true, false, 'Error handler in promise should not be called: ' + err)
     })
     .then(function (result) {
       test.equal(result['obj-first'], obj, 'Response should be returned through promise')
@@ -605,7 +607,7 @@ exports.testRequiredFieldEntireObject = function (test) {
       test.equal(result['obj-first.name'], obj.name, 'Response should be returned through callback')
     })
     .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
+      test.equal(true, false, 'Error handler in promise should not be called: ' + err)
     })
     .then(function (result) {
       test.equal(result['obj-first'], obj, 'Response should be returned through promise')
