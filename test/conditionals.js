@@ -371,3 +371,66 @@ exports.testUnless = function (test) {
       test.done()
     })
 }
+
+// test that multiple defines work
+exports.testMultipleDefines = function (test) {
+  var counter = 0
+
+  this.graph.add('counter-incr', function () {
+    console.log("Incremented twice")
+    return ++counter
+  })
+  .disableNodeCache()
+
+  this.graph.add('bool-true', function () {
+    return true
+  })
+
+  this.graph.add('counter-incrTwice', this.graph.subgraph)
+    .builds('!bool-true')
+    .define('first')
+      .builds({counter1: 'counter-incr'})
+      .when('bool-true')
+    .end()
+    .define('second')
+      .builds({counter2: 'counter-incr'})
+      .when('bool-true')
+    .end()
+    .returns(['first', 'second'])
+
+  this.graph.newBuilder()
+    .builds('counter-incrTwice')
+
+    .run()
+    .then(function (data) {
+      test.equal(data['counter-incrTwice'][0], 1, "The first increment")
+      test.equal(data['counter-incrTwice'][1], 2, "The second increment")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test two defines (the Jon way)
+exports.testTwoDefines = function (test) {
+  this.graph.add('animalSounds', function (cowSound, goatSound) {
+    test.equal(cowSound, 'MOO')
+    test.equal(goatSound, 'AHHGHGH')
+  }, [])
+    .define('cowSound')
+      .builds({sound: this.graph.literal('MOO')})
+      .when({cowIsAnAnimal: this.graph.literal(true)})
+      .end()
+    .define('goatSound')
+      .builds({sound: this.graph.literal('AAHGHGH')})
+      .when({goatIsAnAnimal: this.graph.literal(true)})
+      .end()
+
+  this.graph.newBuilder()
+    .builds('sounds')
+    .run()
+    .fin(test.done)
+}
