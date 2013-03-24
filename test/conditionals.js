@@ -418,19 +418,22 @@ exports.testMultipleDefines = function (test) {
 exports.testTwoDefines = function (test) {
   this.graph.add('animalSounds', function (cowSound, goatSound) {
     test.equal(cowSound, 'MOO')
-    test.equal(goatSound, 'AHHGHGH')
+    test.equal(goatSound, 'AAHGHGH')
   }, [])
     .define('cowSound')
-      .builds({sound: this.graph.literal('MOO')})
+      .builds({sound1: this.graph.literal('MOO')})
       .when({cowIsAnAnimal: this.graph.literal(true)})
       .end()
     .define('goatSound')
-      .builds({sound: this.graph.literal('AAHGHGH')})
+      .builds({sound2: this.graph.literal('AAHGHGH')})
       .when({goatIsAnAnimal: this.graph.literal(true)})
       .end()
 
   this.graph.newBuilder()
-    .builds('sounds')
+    .builds('animalSounds')
     .run()
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
     .fin(test.done)
 }
