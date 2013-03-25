@@ -7,6 +7,31 @@ exports.setUp = function (done) {
   done()
 }
 
+// test that building a node by the same name twice fails
+exports.testDuplicateAliasesFail = function (test) {
+  this.graph.add('bool-true', this.graph.literal(true))
+
+  try {
+    this.graph.newBuilder()
+      .builds('bool-true')
+      .builds('bool-true')
+    test.fail("Should not be able to use the same alias twice")
+  } catch (e) {
+    test.equal(e.message, "You may only use the same alias in a .builds() once in a subgraph", "Should not be able to use the same alias twice")
+  }
+
+  try {
+    this.graph.newBuilder()
+      .builds({myBool: 'bool-true'})
+      .builds({myBool: 'bool-true'})
+    test.fail("Should not be able to use the same alias twice")
+  } catch (e) {
+    test.equal(e.message, "You may only use the same alias in a .builds() once in a subgraph", "Should not be able to use the same alias twice")
+  }
+
+  test.done()
+}
+
 // test that a subgraph can return the expected input
 exports.testReturns = function (test) {
   var name = 'Jeremy'
