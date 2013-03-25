@@ -7,6 +7,49 @@ exports.setUp = function (done) {
   done()
 }
 
+// throw an error when an invalid arg is referenced
+exports.testErrorWhenMissingArg = function (test) {
+  this.graph.add('val-echo', function (val) {
+    return val
+  }, ['val'])
+
+  try {
+    this.graph.add('val-shouldFail', this.graph.subgraph, ['val1', 'val2'])
+      .builds('val-echo')
+        .using('args.val3')
+    test.fail("Should have thrown an error due to an invalid arg")
+  } catch (e) {
+    test.equal(e.message, "args.val3 is referenced but is not provided as an input")
+  }
+
+  test.done()
+}
+
+// test that building a node by the same name twice fails
+exports.testDuplicateAliasesFail = function (test) {
+  this.graph.add('bool-true', this.graph.literal(true))
+
+  try {
+    this.graph.newBuilder()
+      .builds('bool-true')
+      .builds('bool-true')
+    test.fail("Should not be able to use the same alias twice")
+  } catch (e) {
+    test.equal(e.message, "You may only use the same alias in a .builds() once in a subgraph", "Should not be able to use the same alias twice")
+  }
+
+  try {
+    this.graph.newBuilder()
+      .builds({myBool: 'bool-true'})
+      .builds({myBool: 'bool-true'})
+    test.fail("Should not be able to use the same alias twice")
+  } catch (e) {
+    test.equal(e.message, "You may only use the same alias in a .builds() once in a subgraph", "Should not be able to use the same alias twice")
+  }
+
+  test.done()
+}
+
 // test that a subgraph can return the expected input
 exports.testReturns = function (test) {
   var name = 'Jeremy'
