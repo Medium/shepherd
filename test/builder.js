@@ -7,24 +7,6 @@ exports.setUp = function (done) {
   done()
 }
 
-// test that compiling twice doesn't cause problems
-exports.testDoubleCompile = function (test) {
-  this.graph.add('bool-true', this.graph.literal(true))
-
-  this.graph.newBuilder()
-    .builds('bool-true')
-    .compile([])
-    .compile([])
-    .run()
-    .then(function (data) {
-      test.equal(data['bool-true'], true, "bool-true returned successfully")
-    })
-    .fail(function (e) {
-      test.fail("An error was thrown")
-    })
-    .fin(test.done)
-}
-
 // test that builder names are required
 exports.testRequiredBuilderNames = function (test) {
   this.graph.enforceBuilderNames()
