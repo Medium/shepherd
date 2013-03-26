@@ -377,7 +377,6 @@ exports.testMultipleDefines = function (test) {
   var counter = 0
 
   this.graph.add('counter-incr', function () {
-    console.log("Incremented twice")
     return ++counter
   })
   .disableNodeCache()

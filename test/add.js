@@ -15,6 +15,43 @@ exports.testFunction = function (test) {
   test.done()
 }
 
+// test that adding an undefined literal works
+exports.testUndefinedLiteral = function (test) {
+  try {
+    var undefinedVal = undefined
+    var nullVal = null
+    var numVal = 4
+
+    this.graph.add('val-notProvided', this.graph.literal())
+    this.graph.add('val-undefined', this.graph.literal(undefined))
+    this.graph.add('val-null', this.graph.literal(null))
+    this.graph.add('val-number', this.graph.literal(1))
+    this.graph.add('val-str', this.graph.literal('abc'))
+    this.graph.add('val-obj', this.graph.literal({name:'hello'}))
+    this.graph.add('val-fn', this.graph.literal(function () {}))
+    this.graph.add('val-varNum', this.graph.literal(numVal))
+    this.graph.add('val-varNull', this.graph.literal(nullVal))
+    this.graph.add('val-varUndefined', this.graph.literal(undefinedVal))
+
+    this.graph.add('val-notProvided2', this.graph.literal())
+    this.graph.add('val-undefined2', this.graph.literal(undefined))
+    this.graph.add('val-null2', this.graph.literal(null))
+    this.graph.add('val-number2', this.graph.literal(1))
+    this.graph.add('val-str2', this.graph.literal('abc'))
+    this.graph.add('val-obj2', this.graph.literal({name:'hello'}))
+    this.graph.add('val-fn2', this.graph.literal(function () {}))
+    this.graph.add('val-varNum2', this.graph.literal(numVal))
+    this.graph.add('val-varNull2', this.graph.literal(nullVal))
+    this.graph.add('val-varUndefined2', this.graph.literal(undefinedVal))
+
+    test.ok("Able to add an undefined literal")
+  } catch (e) {
+    test.fail(e.stack)
+  }
+
+  test.done()
+}
+
 // test that literals deduplicate correctly
 exports.testLiteralDeduplication = function (test) {
   this.graph.add('name-a', this.graph.literal('Jeremy'))
