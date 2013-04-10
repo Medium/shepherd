@@ -445,19 +445,57 @@ exports.testDefineInBuilder = function (test) {
 
   this.graph.newBuilder()
     .define('greeting')
-      .builds('greeting-french')
+      .builds({french1: 'greeting-french'})
         .when('bool-isFrancophile')
-      .builds({'howdy': 'greeting-english'})
+      .builds({english1: 'greeting-english'})
     .end()
-    // .builds({'fart': 'greeting-english'})
+    .builds({english2: 'greeting-english'})
     .run()
     .then(function (data) {
       test.equal(data['greeting'], 'Bonjour!', "The greeting should be in french!")
-      console.log(data)
+      test.equal(data['english2'], 'Hello!', 'The second english value should be returned')
     })
     .fail(function (e) {
       test.fail(e.stack)
     })
     .fin(test.done)
+}
 
+// Test that nodes can be built in the same define
+exports.testMultipleNodesInBuilderDefine = function (test) {
+  this.graph.add('greeting-addExclamation', function (greeting) {
+    return greeting + '!'
+  }, ['greeting'])
+
+  this.graph.add('greeting-english', function () { return 'Hello'})
+  this.graph.add('greeting-french', function () { return 'Bonjour'})
+  this.graph.add('bool-isFrancophile', function () { return true})
+  this.graph.add('bool-isNotFrancophile', function () { return false})
+
+  this.graph.newBuilder()
+    .define('greeting1')
+      .builds({'greeting-french1': 'greeting-french'})
+      .builds({'greeting-addExclamation1': 'greeting-addExclamation'})
+        .using('greeting-french1')
+        .when('bool-isFrancophile')
+      .builds({'greeting-english1': 'greeting-english'})
+    .end()
+
+    .define('greeting2')
+      .builds({'greeting-french2': 'greeting-french'})
+      .builds({'greeting-addExclamation2': 'greeting-addExclamation'})
+        .using('greeting-french2')
+        .when('bool-isNotFrancophile')
+      .builds({'greeting-english2': 'greeting-english'})
+    .end()
+
+    .run()
+    .then(function (data) {
+      test.equal(data['greeting1'], 'Bonjour!', "The greeting should be in french!")
+      test.equal(data['greeting2'], 'Hello', "The greeting should be in english")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(test.done)
 }
