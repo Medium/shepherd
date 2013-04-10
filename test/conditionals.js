@@ -436,3 +436,28 @@ exports.testTwoDefines = function (test) {
     })
     .fin(test.done)
 }
+
+// Test a define in a builder
+exports.testDefineInBuilder = function (test) {
+  this.graph.add('greeting-english', function () { return 'Hello!'})
+  this.graph.add('greeting-french', function () { return 'Bonjour!'})
+  this.graph.add('bool-isFrancophile', function () { return true})
+
+  this.graph.newBuilder()
+    .define('greeting')
+      .builds('greeting-french')
+        .when('bool-isFrancophile')
+      .builds({'howdy': 'greeting-english'})
+    .end()
+    // .builds({'fart': 'greeting-english'})
+    .run()
+    .then(function (data) {
+      test.equal(data['greeting'], 'Bonjour!', "The greeting should be in french!")
+      console.log(data)
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(test.done)
+
+}
