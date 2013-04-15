@@ -1,7 +1,7 @@
 {
     "name": "shepherd"
   , "description": "asynchronous dependency injection for node.js"
-  , "version": "1.6.7"
+  , "version": "1.6.8"
   , "homepage": "https://github.com/Obvious/shepherd"
   , "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)",
@@ -17,11 +17,11 @@
     , "url": "https://github.com/Obvious/shepherd.git"
   }
   , "dependencies": {
-    "graphviz": "0.0.8",
     "kew": "0.1.2",
     "oid": "0.5.0"
   }
   , "devDependencies": {
+        "graphviz": "0.0.8",
         "nodeunit": "0.7.4"
     }
   , "scripts": {
