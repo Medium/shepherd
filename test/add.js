@@ -54,32 +54,41 @@ exports.testUndefinedLiteral = function (test) {
 
 // test that literals deduplicate correctly
 exports.testLiteralDeduplication = function (test) {
-  this.graph.add('name-a', this.graph.literal('Jeremy'))
-  this.graph.add('name-b', this.graph.literal('Jeremy'))
-  var counter = 0
+  try {
+    this.graph.add('name-a', this.graph.literal('Jeremy'))
+    this.graph.add('name-b', this.graph.literal('Jeremy'))
+    var counter = 0
 
-  this.graph.add('name-echo', function (name) {
-    counter++
-    return name
-  }, ['name'])
+    this.graph.add('name-echo', function (name) {
+      console.log(444)
+      counter++
+      return name
+    }, ['name'])
 
-  this.graph.newBuilder()
-    .builds({nameA: 'name-echo'})
-      .using('name-a')
-    .builds({nameB: 'name-echo'})
-      .using('name-b')
-    .run()
-    .then(function (data) {
-      test.equal(data.nameA, 'Jeremy', "Name should match")
-      test.equal(data.nameB, 'Jeremy', "Name should match")
-      test.equal(counter, 1, "Echo should only have ran once")
-    })
-    .fail(function (e) {
-      test.fail("An error was returned")
-    })
-    .fin(function () {
-      test.done()
-    })
+    console.log(222)
+    this.graph.newBuilder()
+      .builds({nameA: 'name-echo'})
+        .using('name-a')
+      .builds({nameB: 'name-echo'})
+        .using('name-b')
+      .run()
+      .then(function (data) {
+        console.log(111)
+        test.equal(data.nameA, 'Jeremy', "Name should match")
+        test.equal(data.nameB, 'Jeremy', "Name should match")
+        test.equal(counter, 1, "Echo should only have ran once")
+      })
+      .fail(function (e) {
+        console.log(333)
+        test.fail("An error was returned")
+      })
+      .fin(function () {
+        test.done()
+      })
+  } catch (e) {
+    console.error("WHAT")
+    console.error(e.stack)
+  }
 }
 
 // test that adding the same node twice fails
