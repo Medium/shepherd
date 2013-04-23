@@ -8,6 +8,29 @@ exports.setUp = function (done) {
   done()
 }
 
+// test that dot notation for child values work
+exports.testChildVariables = function (test) {
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
+
+  this.graph.type('user', User)
+
+  this.graph.add('user-withName', function () {
+    var user = new User()
+    user.name = "Joe"
+    return user
+  })
+
+  var promises = []
+
+  this.graph
+    .newBuilder()
+    .builds('user-withName.name')
+    .run()
+    .then(test.ok.bind(test, "User name should be returned"))
+    .fail(test.fail.bind(test, "User name should be returned"))
+    .fin(test.done)
+}
+
 // test that the same type can only be added once
 exports.testDuplicateTypesFail = function (test) {
   try {
