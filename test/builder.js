@@ -1,15 +1,16 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/shepherd')).Graph
+  this.graph = new shepherd.Graph
   done()
 }
 
 // test that builder names are required
 exports.testRequiredBuilderNames = function (test) {
-  this.graph.enforceBuilderNames()
+  this.graph.enforceBuilderNames(shepherd.ErrorMode.ERROR)
 
   try {
     this.graph.newBuilder()
