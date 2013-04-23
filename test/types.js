@@ -1,9 +1,10 @@
 // Copyright 2013 The Obvious Corporation.
 var Q = require('kew')
+var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/shepherd')).Graph
+  this.graph = new shepherd.Graph
   done()
 }
 
@@ -23,7 +24,7 @@ exports.testDuplicateTypesFail = function (test) {
 
 // test that enforcing types doesn't error with enforceTypes off
 exports.testMissingType = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph
     .add('number-string', this.graph.literal(4))
@@ -51,7 +52,7 @@ exports.testTypeCheckingDisabled = function (test) {
 
 // test that enforcing types doesn't error with enforceTypes off
 exports.testTypeCheckingWarning = function (test) {
-  this.graph.enforceTypes('warn')
+  this.graph.enforceTypes(shepherd.ErrorMode.WARN)
 
   this.graph.type('number', Number)
 
@@ -71,7 +72,7 @@ exports.testTypeCheckingWarning = function (test) {
 
 // test that single numbers work
 exports.testNumber = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('number', Number)
 
@@ -153,7 +154,7 @@ exports.testNumber = function (test) {
 
 // test that single booleans work
 exports.testBoolean = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('boolean', Boolean)
 
@@ -235,7 +236,7 @@ exports.testBoolean = function (test) {
 
 // test that single strings work
 exports.testString = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('string', String)
 
@@ -317,7 +318,7 @@ exports.testString = function (test) {
 
 // test that single objects work
 exports.testObject = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('object', Object)
 
@@ -399,7 +400,7 @@ exports.testObject = function (test) {
 
 // test that single objects work
 exports.testObject = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('object', Object)
 
@@ -481,7 +482,7 @@ exports.testObject = function (test) {
 
 // test that single user objects work
 exports.testUserType = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('user', User)
 
@@ -573,7 +574,7 @@ exports.testUserType = function (test) {
 
 // test that arrays work
 exports.testArray = function (test) {
-  this.graph.enforceTypes('throw')
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('strs', [String])
   this.graph.type('users', [User])

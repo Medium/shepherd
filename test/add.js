@@ -1,9 +1,10 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/shepherd')).Graph
+  this.graph = new shepherd.Graph
   done()
 }
 
@@ -823,7 +824,7 @@ exports.testEnablingCache = function (test) {
 // nodes should only be added with a 2-part hyphen-delimited name
 exports.testHyphenatedNames = function (test) {
   this.graph = this.graph.clone()
-  this.graph.enforceTwoPartNames()
+  this.graph.enforceTwoPartNames(shepherd.ErrorMode.ERROR)
 
   this.graph.add('test-delimited', this.graph.literal('ok'))
 
