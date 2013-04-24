@@ -8,6 +8,183 @@ exports.setUp = function (done) {
   done()
 }
 
+// test wildcard array types
+exports.testWildcardArrayTypes = function (test) {
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
+
+  this.graph
+    .type('array', ['*'])
+
+  var promises = []
+
+  promises.push(
+    this.graph
+      .add('array-mixed', this.graph.literal(['Hello', 4, undefined, null, true, {}, new User()]))
+      .newBuilder()
+      .builds('array-mixed')
+      .run()
+      .then(test.ok.bind(test, "Mixed array should match wildcard type"))
+      .fail(test.fail.bind(test, "Mixed array should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-empty', this.graph.literal([]))
+      .newBuilder()
+      .builds('array-empty')
+      .run()
+      .then(test.ok.bind(test, "Empty array should match wildcard type"))
+      .fail(test.fail.bind(test, "Empty array should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-null', this.graph.literal(null))
+      .newBuilder()
+      .builds('array-null')
+      .run()
+      .then(test.fail.bind(test, "Null should not match wildcard type"))
+      .fail(test.ok.bind(test, "Null should not match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-undefined', this.graph.literal(undefined))
+      .newBuilder()
+      .builds('array-undefined')
+      .run()
+      .then(test.fail.bind(test, "Undefined should not match wildcard type"))
+      .fail(test.ok.bind(test, "Undefined should not match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-str', this.graph.literal('Hello'))
+      .newBuilder()
+      .builds('array-str')
+      .run()
+      .then(test.fail.bind(test, "String should not match wildcard type"))
+      .fail(test.ok.bind(test, "String should not match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-object', this.graph.literal({}))
+      .newBuilder()
+      .builds('array-object')
+      .run()
+      .then(test.fail.bind(test, "Object should not match wildcard type"))
+      .fail(test.ok.bind(test, "Object should not match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('array-user', this.graph.literal(new User))
+      .newBuilder()
+      .builds('array-user')
+      .run()
+      .then(test.fail.bind(test, "User should not match wildcard type"))
+      .fail(test.ok.bind(test, "User should not match wildcard type"))
+  )
+
+  Q.all(promises)
+    .fin(test.done)
+}
+
+// test wildcard types
+exports.testWildcardTypes = function (test) {
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
+
+  this.graph
+    .type('value', '*')
+
+  var promises = []
+
+  promises.push(
+    this.graph
+      .add('value-emptyArray', this.graph.literal([]))
+      .newBuilder()
+      .builds('value-emptyArray')
+      .run()
+      .then(test.ok.bind(test, "Empty array should match wildcard type"))
+      .fail(test.fail.bind(test, "Empty array should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('value-null', this.graph.literal(null))
+      .newBuilder()
+      .builds('value-null')
+      .run()
+      .then(test.ok.bind(test, "Null should match wildcard type"))
+      .fail(test.fail.bind(test, "Null should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('value-undefined', this.graph.literal(undefined))
+      .newBuilder()
+      .builds('value-undefined')
+      .run()
+      .then(test.ok.bind(test, "Undefined should match wildcard type"))
+      .fail(test.fail.bind(test, "Undefined should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('value-str', this.graph.literal('Hello'))
+      .newBuilder()
+      .builds('value-str')
+      .run()
+      .then(test.ok.bind(test, "String should match wildcard type"))
+      .fail(test.fail.bind(test, "String should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('value-object', this.graph.literal({}))
+      .newBuilder()
+      .builds('value-object')
+      .run()
+      .then(test.ok.bind(test, "Object should match wildcard type"))
+      .fail(test.fail.bind(test, "Object should match wildcard type"))
+  )
+
+  promises.push(
+    this.graph
+      .add('value-user', this.graph.literal(new User))
+      .newBuilder()
+      .builds('value-user')
+      .run()
+      .then(test.ok.bind(test, "User should match wildcard type"))
+      .fail(test.fail.bind(test, "User should match wildcard type"))
+  )
+
+  Q.all(promises)
+    .fin(test.done)
+}
+
+// test that dot notation for child values work
+exports.testChildVariables = function (test) {
+  this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
+
+  this.graph.type('user', User)
+
+  this.graph.add('user-withName', function () {
+    var user = new User()
+    user.name = "Joe"
+    return user
+  })
+
+  this.graph
+    .newBuilder()
+    .builds('user-withName.name')
+    .run()
+    .then(test.ok.bind(test, "User name should be returned"))
+    .fail(test.fail.bind(test, "User name should be returned"))
+    .fin(test.done)
+}
+
 // test that the same type can only be added once
 exports.testDuplicateTypesFail = function (test) {
   try {
