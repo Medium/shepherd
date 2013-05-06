@@ -17,7 +17,7 @@
     , "url": "https://github.com/Obvious/shepherd.git"
   }
   , "dependencies": {
-    "kew": "0.1.6",
+    "kew": "0.1.7",
     "oid": "0.5.0",
     "typ": "0.6.3"
   }
