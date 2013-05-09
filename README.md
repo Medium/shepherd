@@ -11,7 +11,8 @@ Getting started
 To get started with **shepherd**, you need to create a `Graph`. A `Graph` is a registry of all of the things you want to be able to do (units of work). First, instantiate the Graph:
 
 ```javascript
-var graph = new require("shepherd").Graph
+var Graph = require("shepherd").Graph
+  , graph = new Graph
 ```
 
 Next, you need to add some nodes to the `Graph` which perform said units of work. Let's add 2 nodes to the Graph:
@@ -52,7 +53,8 @@ What is the Graph really?
 The `Graph` in shepherd is the place where you put all the things your application is able to do. Before you add any nodes to a `Graph`, you'll need to make sure to instantiate it first:
 
 ```javascript
-var graph = new require("shepherd").Graph
+var Graph = require("shepherd").Graph
+  , graph = new Graph
 ```
 
 Adding nodes to the Graph
