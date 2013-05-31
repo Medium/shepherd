@@ -399,6 +399,7 @@ exports.testUnless2 = function (test) {
       .builds({'user2': 'user-addId'})
         .using('user-jeremy')
       .unless('user-jeremy.id')
+    .end()
     .run()
     .then(function (data) {
       test.equal('Jon', data['user-jon'].name, "Wrong user")
@@ -440,6 +441,7 @@ exports.testUnless3 = function (test) {
         .using({'user': 'jon'})
       .unless('bool-userHasId')
         .using({'user': 'jon'})
+    .end()
     .run()
     .then(function (data) {
       test.equal('Jon', data['jon'].name, "Wrong user")
@@ -451,6 +453,16 @@ exports.testUnless3 = function (test) {
     .fin(function () {
       test.done()
     })
+}
+
+exports.testIncompleteBlock = function (test) {
+  try {
+    this.graph.newBuilder().define('incomplete').run()
+    test.ok(false, 'Expected error')
+  } catch (e) {
+    test.ok(e.message.indexOf('Incomplete') != -1, e.stack)
+  }
+  test.done()
 }
 
 // test that multiple defines work
