@@ -84,7 +84,7 @@ exports.testGuardsWithElse = function (test) {
       test.equal(data.str5, testInputs[4].output, data.str5 + " should be " + testInputs[4].output)
     })
     .fail(function (e) {
-      test.fail("threw an error", e.graphInfo)
+      test.fail("threw an error", e.stack)
     })
     .fin(function () {
       test.done()
@@ -164,7 +164,7 @@ exports.testGuardsWithoutElse = function (test) {
       test.equal(data.str5, testInputs[4].output, data.str5 + " should be " + testInputs[4].output)
     })
     .fail(function (e) {
-      test.fail("threw an error")
+      test.fail("threw an error", e.stack)
     })
     .fin(function () {
       test.done()
@@ -364,8 +364,52 @@ exports.testUnless = function (test) {
       .using({user: this.graph.literal({id: 111, name: "Jon"})})
     .run()
     .then(function (data) {
-      test.equal(data.user1.id > 0, true, "User1 has a new id")
+      test.ok(('id' in data.user1), "User1 has a new id")
       test.equal(data.user2.id, 111, "User2 has its existing id")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+// test that unless works with property references
+exports.testUnless2 = function (test) {
+  this.graph.add('user-jon', function () {
+    return {name: "Jon"}
+  })
+  this.graph.add('user-jeremy', function () {
+    return {id: 345, name: "Jeremy"}
+  })
+
+  this.graph.add('user-addId', function (user) {
+    user.id = Math.floor(Math.random() * 100000) + 1
+  }, ['user'])
+
+  this.graph.newBuilder()
+    .builds('user-jeremy')
+    .builds('user-jon')
+    .define('jonWithId')
+      .builds({'user1': 'user-addId'})
+        .using('user-jon')
+      .unless('user-jon.id')
+    .define('jeremyWithId')
+      .builds({'user2': 'user-addId'})
+        .using('user-jeremy')
+      .unless('user-jeremy.id')
+    .run()
+    .then(function (data) {
+      test.equal('Jon', data['user-jon'].name, "Wrong user")
+      test.ok('id' in data['user-jon'], "User doesn't have an id")
+
+      test.equal('Jeremy', data['user-jeremy'].name, "Wrong user")
+      test.ok('id' in data['user-jeremy'], "User doesn't have an id")
+      test.equal(345, data['user-jeremy'].id, "User has the wrong id")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
     })
     .fin(function () {
       test.done()
