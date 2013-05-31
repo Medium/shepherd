@@ -416,6 +416,43 @@ exports.testUnless2 = function (test) {
     })
 }
 
+exports.testUnless3 = function (test) {
+  this.graph.add('jon', function () {
+    return {name: "Jon"}
+  })
+  this.graph.add('jeremy', function () {
+    return {id: 345, name: "Jeremy"}
+  })
+
+  this.graph.add('user-addId', function (user) {
+    user.id = Math.floor(Math.random() * 100000) + 1
+  }, ['user'])
+
+  this.graph.add('bool-userHasId', function (user) {
+    return !!user.id
+  }, ['user'])
+
+  this.graph.newBuilder()
+    .builds('jeremy')
+    .builds('jon')
+    .define('jonWithId')
+      .builds({'user1': 'user-addId'})
+        .using({'user': 'jon'})
+      .unless('bool-userHasId')
+        .using({'user': 'jon'})
+    .run()
+    .then(function (data) {
+      test.equal('Jon', data['jon'].name, "Wrong user")
+      test.ok('id' in data['jon'], "User doesn't have an id")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
 // test that multiple defines work
 exports.testMultipleDefines = function (test) {
   var counter = 0
