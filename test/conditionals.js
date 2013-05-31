@@ -399,6 +399,7 @@ exports.testUnless2 = function (test) {
       .builds({'user2': 'user-addId'})
         .using('user-jeremy')
       .unless('user-jeremy.id')
+    .end()
     .run()
     .then(function (data) {
       test.equal('Jon', data['user-jon'].name, "Wrong user")
@@ -440,6 +441,7 @@ exports.testUnless3 = function (test) {
         .using({'user': 'jon'})
       .unless('bool-userHasId')
         .using({'user': 'jon'})
+    .end()
     .run()
     .then(function (data) {
       test.equal('Jon', data['jon'].name, "Wrong user")
@@ -451,6 +453,57 @@ exports.testUnless3 = function (test) {
     .fin(function () {
       test.done()
     })
+}
+
+
+exports.testUnless4 = function (test) {
+  this.graph.add('user-jeremy', function () {
+    return {id: 345, name: "Jeremy"}
+  })
+
+  this.graph.add('user-addId2', function (user) {
+    user.id = Math.floor(Math.random() * 100000) + 1
+  }, ['user'])
+
+  this.graph.add('bool-userHasId', function (user) {
+    return !!user.id
+  }, ['user'])
+
+  // Make sure that user-addId2 doesn't get built
+  // if the 'unless' clause fails.
+  this.graph.add('user-addId', this.graph.subgraph, ['user'])
+    .builds('user-addId2')
+      .using('args.user')
+    .returns('args.user')
+
+  this.graph.newBuilder()
+    .builds('user-jeremy')
+    .define('jeremyWithId')
+      .builds('user-addId')
+        .using('user-jeremy')
+      .unless('bool-userHasId')
+        .using('user-jeremy')
+    .end()
+    .run()
+    .then(function (data) {
+      test.equal(345, data['user-jeremy'].id, "User has the wrong id")
+    })
+    .fail(function (e) {
+      test.fail(e.stack)
+    })
+    .fin(function () {
+      test.done()
+    })
+}
+
+exports.testIncompleteBlock = function (test) {
+  try {
+    this.graph.newBuilder().define('incomplete').run()
+    test.ok(false, 'Expected error')
+  } catch (e) {
+    test.ok(e.message.indexOf('Incomplete') != -1, e.stack)
+  }
+  test.done()
 }
 
 // test that multiple defines work
