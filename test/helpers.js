@@ -1,6 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var oid = require('oid')
 var Q = require('kew')
+var utils = require('../lib/utils')
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -147,4 +148,22 @@ exports.testDeepFreezeError = function (test) {
     .fin(function () {
       test.done()
     })
+}
+
+// Test that parseFnParams works.
+exports.testParseFnParams = function (test) {
+  function fn1 () { return 1 }
+  function fn2 (x) { return 2 }
+  function fn3 (x, $y, _z) { return 3 }
+  var fn4 = function (a, b, c) { return 4 }
+
+  var parseFnParams = utils.parseFnParams
+
+  test.deepEqual(parseFnParams(fn1), [], 'No params')
+  test.deepEqual(parseFnParams(fn2), ['x'], 'One param')
+  test.deepEqual(parseFnParams(fn3), ['x', '$y', '_z'], 'Three params')
+  test.deepEqual(parseFnParams(fn4), ['a', 'b', 'c'], 'Three params, declaration with `var`')
+  test.deepEqual(parseFnParams(function (K, J, H) {}), ['K', 'J', 'H'], 'Three params, anonymous funciton')
+
+  test.done()
 }
