@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -10,12 +12,12 @@ exports.setUp = function (done) {
 }
 
 // test adding an anonymous function as a modifier
-exports.testAnonymousModifier = function (test) {
+builder.add(function testAnonymousModifier(test) {
   var name = "Jeremy"
 
   this.graph.add('name-fromLiteral', this.graph.literal(name))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-fromLiteral')
       .modifiers(function (name) {
         return name.toUpperCase()
@@ -30,14 +32,10 @@ exports.testAnonymousModifier = function (test) {
     .then(function (result) {
       test.equal(result['name-fromLiteral'], name.toUpperCase(), 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // builder can apply modifiers to built node
-exports.testModifiersFromBuilder = function (test) {
+builder.add(function testModifiersFromBuilder(test) {
   var now = Date.now()
   var userName = 'Jeremy'
   var nameHolder = {
@@ -56,7 +54,7 @@ exports.testModifiersFromBuilder = function (test) {
 
   this.graph.add('nameHolder', this.graph.literal(nameHolder))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .configure('addDate')
       .using({date: now})
     .builds('user')
@@ -73,14 +71,10 @@ exports.testModifiersFromBuilder = function (test) {
     .then(function (result) {
       test.equal(result.user.date, now, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // node can apply modifiers to child node
-exports.testModifiersFromSubgraph = function (test) {
+builder.add(function testModifiersFromSubgraph(test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -100,7 +94,7 @@ exports.testModifiersFromSubgraph = function (test) {
     .builds('user-withoutDate')
       .modifiers({'addDate': 'obj'})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('user-withDate')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -112,14 +106,10 @@ exports.testModifiersFromSubgraph = function (test) {
     .then(function (result) {
       test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // modifiers should run for self first, then builder
-exports.testModifiersOrdering = function (test) {
+builder.add(function testModifiersOrdering(test) {
   var nodeValue = "Jeremy"
 
   this.graph.add("trimFirstChar", function (name) {
@@ -135,7 +125,7 @@ exports.testModifiersOrdering = function (test) {
     .builds('name-fromLiteral')
       .modifiers('trimFirstChar')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-wrapped')
       .modifiers('addQuotes')
     .run({}, function (err, result) {
@@ -148,14 +138,10 @@ exports.testModifiersOrdering = function (test) {
     .then(function (result) {
       test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // modifiers can take prefixed node names as inputs
-exports.testModifiersWithPrefixedNodes = function (test) {
+builder.add(function testModifiersWithPrefixedNodes(test) {
   var now = Date.now()
   var user = {
     name: 'Jeremy'
@@ -172,7 +158,7 @@ exports.testModifiersWithPrefixedNodes = function (test) {
     return userObj
   }, ['user'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('user-wrapped')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -184,14 +170,10 @@ exports.testModifiersWithPrefixedNodes = function (test) {
     .then(function (result) {
       test.equal(result['user-wrapped'].date, now, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test creating modifiers with optional fields
-exports.testOptionalModifiers = function (test) {
+builder.add(function testOptionalModifiers(test) {
   var username = "Jeremy"
   this.graph.add('str-base', this.graph.literal(username))
 
@@ -205,7 +187,7 @@ exports.testOptionalModifiers = function (test) {
     .builds('str-base')
       .modifiers('str-modifier')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('str-test')
     .run({username: username}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -217,14 +199,10 @@ exports.testOptionalModifiers = function (test) {
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test passing a subgraph as a modifier (using args.)
-exports.testSubgraphAsModifier = function (test) {
+builder.add(function testSubgraphAsModifier(test) {
   this.graph.add('str-upper', function (str) {
     return str.toUpperCase()
   }, ['str'])
@@ -256,7 +234,7 @@ exports.testSubgraphAsModifier = function (test) {
 
   var startStr = 'This_is_a_test'
   var endStr = 'ThIs_iS_A_TeSt'
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('str-proxy1')
       .using({str: 'inputStr'})
     .builds('str-proxy2')
@@ -274,14 +252,10 @@ exports.testSubgraphAsModifier = function (test) {
       test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
       test.equal(result['str-proxy2'], endStr, 'String should be mixed case')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test passing a subgraph as a modifier (using args.)
-exports.testSubgraphAsModifierWithObjects = function (test) {
+builder.add(function testSubgraphAsModifierWithObjects(test) {
   try {
     this.graph.add('str-upper', function (str) {
       return str.toUpperCase()
@@ -312,7 +286,7 @@ exports.testSubgraphAsModifierWithObjects = function (test) {
 
     var startStr = 'This_is_a_test'
     var endStr = 'ThIs_iS_A_TeSt'
-    this.graph.newBuilder()
+    return this.graph.newBuilder()
       .builds('str-proxy1')
         .using({obj: this.graph.literal({str: startStr})})
       .run({inputStr: startStr}, function (err, result) {
@@ -322,14 +296,7 @@ exports.testSubgraphAsModifierWithObjects = function (test) {
       .then(function (result) {
         test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
       })
-      .fail(function (err) {
-        test.equal(true, false, 'Error handler in promise should not be called')
-      })
-      .then(function () {
-        test.done()
-      })
-      .end()
   } catch (e) {
     console.error(e.stack)
   }
-}
+})

@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
@@ -9,15 +11,15 @@ exports.setUp = function (done) {
 }
 
 // test that the function for a node can be retrieved
-exports.testFunction = function (test) {
+builder.add(function testFunction(test) {
   var echo = function (input) { return input }
   this.graph.add('echo', echo, ['input'])
   test.equal(this.graph.getFunction('echo'), echo, "The handler function should be returned")
   test.done()
-}
+})
 
 // test that adding an undefined literal works
-exports.testUndefinedLiteral = function (test) {
+builder.add(function testUndefinedLiteral(test) {
   try {
     var undefinedVal = undefined
     var nullVal = null
@@ -51,10 +53,10 @@ exports.testUndefinedLiteral = function (test) {
   }
 
   test.done()
-}
+})
 
 // test that literals deduplicate correctly
-exports.testLiteralDeduplication = function (test) {
+builder.add(function testLiteralDeduplication(test) {
   this.graph.add('name-a', this.graph.literal('Jeremy'))
   this.graph.add('name-b', this.graph.literal('Jeremy'))
   var counter = 0
@@ -64,7 +66,7 @@ exports.testLiteralDeduplication = function (test) {
     return name
   }, ['name'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({nameA: 'name-echo'})
       .using('name-a')
     .builds({nameB: 'name-echo'})
@@ -75,16 +77,10 @@ exports.testLiteralDeduplication = function (test) {
       test.equal(data.nameB, 'Jeremy', "Name should match")
       test.equal(counter, 1, "Echo should only have ran once")
     })
-    .fail(function (e) {
-      test.fail("An error was returned")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // test that adding the same node twice fails
-exports.testAddTwice = function (test) {
+builder.add(function testAddTwice(test) {
   this.graph.add('a', function () {
     return 1
   })
@@ -99,10 +95,10 @@ exports.testAddTwice = function (test) {
   }
 
   test.done()
-}
+})
 
 // test that force adding a node overrides the existing value
-exports.testForceAdd = function (test) {
+builder.add(function testForceAdd(test) {
   this.graph.add('a', function () {
     return 1
   })
@@ -111,22 +107,16 @@ exports.testForceAdd = function (test) {
     return 2
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('a')
     .run()
     .then(function (data) {
       test.equal(data['a'], 2, "A should have been overwritten")
     })
-    .fail(function (e) {
-      test.fail("An error occurred")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // test that handlers are required for nodes
-exports.testMissingNodesGraph = function (test) {
+builder.add(function testMissingNodesGraph(test) {
   this.graph.add('testFn')
 
   try {
@@ -139,13 +129,13 @@ exports.testMissingNodesGraph = function (test) {
                'Functions without callbacks should throw different errors: ' + e)
   }
   test.done()
-}
+})
 
 // test that handlers are required for nodes
-exports.testMissingNodesBuilder = function (test) {
+builder.add(function testMissingNodesBuilder(test) {
   this.graph.add('testFn')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('testFn')
     .run()
     .then(function () {
@@ -155,11 +145,10 @@ exports.testMissingNodesBuilder = function (test) {
       test.equal(e.message.indexOf('requires a callback') > 0, true,
                  'Functions without callbacks should throw different errors: ' + e)
     })
-    .fin(test.done.bind(test))
-}
+})
 
 // test passing args inline vs chained
-exports.testArgs = function (test) {
+builder.add(function testArgs(test) {
   var name = 'Jeremy'
   var returnInput = function () {
     return arguments[0]
@@ -168,7 +157,7 @@ exports.testArgs = function (test) {
   this.graph.add('name-chainedArgs', returnInput)
     .args('name')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-inlineArgs')
     .builds('name-chainedArgs')
     .run({name: name}, function (err, result) {
@@ -176,21 +165,14 @@ exports.testArgs = function (test) {
       test.equal(result['name-inlineArgs'], name, 'Response should be returned through callback')
       test.equal(result['name-chainedArgs'], name, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result['name-inlineArgs'], name, 'Response should be returned through promise')
       test.equal(result['name-chainedArgs'], name, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test passing func inline vs chained
-exports.testFunc = function (test) {
+builder.add(function testFunc(test) {
   var name = 'Jeremy'
   var returnInput = function () {
     return arguments[0]
@@ -201,7 +183,7 @@ exports.testFunc = function (test) {
     .args('name')
     .fn(returnInput)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-inlineArgs')
     .builds('name-chainedArgs')
     .run({name: name}, function (err, result) {
@@ -209,213 +191,150 @@ exports.testFunc = function (test) {
       test.equal(result['name-inlineArgs'], name, 'Response should be returned through callback')
       test.equal(result['name-chainedArgs'], name, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result['name-inlineArgs'], name, 'Response should be returned through promise')
       test.equal(result['name-chainedArgs'], name, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (object) through graph.literal()
-exports.testAddLiteralObjectThroughFunction = function (test) {
+builder.add(function testAddLiteralObjectThroughFunction(test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (object) through val passed to graph.add() directly
-exports.testAddLiteralObjectThroughVal = function (test) {
+builder.add(function testAddLiteralObjectThroughVal(test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, nodeValue)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (object) through val passed through {_literal:VAL}
-exports.testAddLiteralObjectThroughObject = function (test) {
+builder.add(function testAddLiteralObjectThroughObject(test) {
   var nodeName = 'user'
   var nodeValue = {name: 'Jeremy'}
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (number) through val passed through graph.literal
-exports.testAddLiteralNumberThroughFunction = function (test) {
+builder.add(function testAddLiteralNumberThroughFunction(test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (number) through val passed to graph.add() directly
-exports.testAddLiteralNumberThroughVal = function (test) {
+builder.add(function testAddLiteralNumberThroughVal(test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, nodeValue)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (number) through val passed through {_literal:VAL}
-exports.testAddLiteralNumberThroughObject = function (test) {
+builder.add(function testAddLiteralNumberThroughObject(test) {
   var nodeName = 'size'
   var nodeValue = 1234
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (string) through val passed to graph.literal()
-exports.testAddLiteralStringThroughFunction = function (test) {
+builder.add(function testAddLiteralStringThroughFunction(test) {
   var nodeName = 'name'
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, this.graph.literal(nodeValue))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // adding literal (string) through val passed through {_literal:VAL}
-exports.testAddLiteralStringThroughObject = function (test) {
+builder.add(function testAddLiteralStringThroughObject(test) {
   var nodeName = 'name'
   var nodeValue = 'Jeremy'
   this.graph.add(nodeName, {_literal: nodeValue})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // anonymous functions should be be added to the graph correctly and should have valid dependencies
-exports.testAddAnonymous = function (test) {
+builder.add(function testAddAnonymous(test) {
   var nodeHint = 'name'
   var nodeValue = 'Jeremy'
   var nodeName = this.graph.addAnonymous(nodeHint, function () {
@@ -427,7 +346,7 @@ exports.testAddAnonymous = function (test) {
 
   test.equal(nodeName.substr(0, nodeHint.length), nodeHint, 'Anonymous node prefix should match node hint')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(nodeName)
     .builds(nodeName2)
     .run({}, function (err, result) {
@@ -435,21 +354,14 @@ exports.testAddAnonymous = function (test) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through callback')
       test.equal(result[nodeName2], nodeValue, 'Response w/ dependency should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[nodeName], nodeValue, 'Response should be returned through promise')
       test.equal(result[nodeName2], nodeValue, 'Response w/ dependency should be returned through callback')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // functions should be clonable via graph.add('newNodeName', 'oldNodeName')
-exports.testClone = function (test) {
+builder.add(function testClone(test) {
   var nodeHint = 'name'
   var nodeValue = 'Jeremy'
   var nodeName = this.graph.addAnonymous(nodeHint, function () {
@@ -458,26 +370,19 @@ exports.testClone = function (test) {
   var clonedNode = 'name-cloned'
   this.graph.add(clonedNode, nodeName)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds(clonedNode)
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
       test.equal(result[clonedNode], nodeValue, 'Response should be returned through callback')
     })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result[clonedNode], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // functions should take an expected number of arguments
-exports.testNumArguments = function (test) {
+builder.add(function testNumArguments(test) {
   var argCounter = function (numExpected) {
     return function () {
       // expect 1 more argument than specified (for the callback)
@@ -492,17 +397,13 @@ exports.testNumArguments = function (test) {
   this.graph.add('d', argCounter(2), ['a', 'b', '!c'])
   this.graph.add('e', argCounter(4), ['a', 'b', 'c', 'd'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('e')
     .run({})
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // functions should run in order based on normal and silent dependencies
-exports.testNodeOrder = function (test) {
+builder.add(function testNodeOrder(test) {
   var output = ''
   var appender = function (str) {
     return function () {
@@ -517,7 +418,7 @@ exports.testNodeOrder = function (test) {
   this.graph.add('b', appender('b'), ['a'])
   this.graph.add('a', appender('a'))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('e')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -529,14 +430,10 @@ exports.testNodeOrder = function (test) {
     .then(function (result) {
       test.equal(output, 'abcde', 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // required fields for merged nodes should return a single array of dependencies for both
-exports.testMergedRequiredFields = function (test) {
+builder.add(function testMergedRequiredFields(test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -546,7 +443,7 @@ exports.testMergedRequiredFields = function (test) {
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
   this.graph.add('obj-second', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('obj-first.name')
     .builds('obj-second.age')
     .run({obj: obj}, function (err, result) {
@@ -561,14 +458,10 @@ exports.testMergedRequiredFields = function (test) {
       test.equal(result['obj-first.name'], obj.name, 'Response should be returned through promise')
       test.equal(result['obj-second.age'], obj.age, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // required fields of a node should be passed as an array if always referenced via members
-exports.testRequiredFieldsMembers = function (test) {
+builder.add(function testRequiredFieldsMembers(test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -577,7 +470,7 @@ exports.testRequiredFieldsMembers = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('obj-first.name')
     .builds('obj-first.age')
     .run({obj: obj}, function (err, result) {
@@ -592,14 +485,10 @@ exports.testRequiredFieldsMembers = function (test) {
       test.equal(result['obj-first.name'], obj.name, 'Response should be returned through promise')
       test.equal(result['obj-first.age'], obj.age, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // node should receive '*' as requiredFields if only referenced as an entire object
-exports.testRequiredFieldEntireObject = function (test) {
+builder.add(function testRequiredFieldEntireObject(test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -608,7 +497,7 @@ exports.testRequiredFieldEntireObject = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('obj-first')
     .run({obj: obj}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -620,14 +509,10 @@ exports.testRequiredFieldEntireObject = function (test) {
     .then(function (result) {
       test.equal(result['obj-first'], obj, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // node should receive '*' as requiredFields if referenced as an entire object as well as via members
-exports.testRequiredFieldEntireObject = function (test) {
+builder.add(function testRequiredFieldEntireObject2(test) {
   var obj = {name: "Jeremy"}
 
   function getObj(obj, requiredFields) {
@@ -636,7 +521,7 @@ exports.testRequiredFieldEntireObject = function (test) {
   }
   this.graph.add('obj-first', getObj, ['obj', '_requiredFields'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('obj-first')
     .builds('obj-first.name')
     .run({obj: obj}, function (err, result) {
@@ -651,14 +536,10 @@ exports.testRequiredFieldEntireObject = function (test) {
       test.equal(result['obj-first'], obj, 'Response should be returned through promise')
       test.equal(result['obj-first.name'], obj.name, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // node should be uncacheable
-exports.testDisablingCache = function (test) {
+builder.add(function testDisablingCache(test) {
   var count = 0
   function incrementCount() {
     return ++count
@@ -666,7 +547,7 @@ exports.testDisablingCache = function (test) {
   this.graph.add('count-incremented', incrementCount)
     .disableNodeCache()
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({'count1': 'count-incremented'})
     .builds({'count2': 'count-incremented'})
     .builds({'count3': 'count-incremented'})
@@ -684,14 +565,10 @@ exports.testDisablingCache = function (test) {
       test.equal(count, 5, 'Response should be returned through promise')
       test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 2 + 3 + 4 + 5, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test that the disable cache flag forces a recalculation of dependencies
-exports.testDisablingCacheDependency = function (test) {
+builder.add(function testDisablingCacheDependency(test) {
   var obj = {
     counter: 0
   }
@@ -707,7 +584,7 @@ exports.testDisablingCacheDependency = function (test) {
     return obj.counter
   }, ['obj'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({'myObject': 'obj-fromLiteral'})
     .builds({preCounter: 'counter-fromObject'})
       .using({obj: 'myObject'})
@@ -721,15 +598,9 @@ exports.testDisablingCacheDependency = function (test) {
       test.equal(data.preCounter, 0, "First counter should be 0")
       test.equal(data.postCounter, 1, "Second counter should be 1")
     })
-    .fail(function (e) {
-      test.fail("Failed due to an error")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
-exports.testDisablingCacheRecursiveDependency = function (test) {
+builder.add(function testDisablingCacheRecursiveDependency(test) {
   try {
     this.graph.disableCallbacks()
 
@@ -755,7 +626,7 @@ exports.testDisablingCacheRecursiveDependency = function (test) {
       return users[userId]
     }, ['userId'])
 
-    this.graph.newBuilder()
+    return this.graph.newBuilder()
       // should call normally
       .builds({preSave1: 'user-byUserId'})
         .using({userId: 'inputUser.id'})
@@ -778,26 +649,20 @@ exports.testDisablingCacheRecursiveDependency = function (test) {
         test.equal(data.postSave1, newUser, "User post-save should be defined")
         test.equal(data.postSave2, newUser, "User post-save should be defined")
       })
-      .fail(function (e) {
-        test.fail("Failed due to an error", e.stack)
-      })
-      .fin(function () {
-        test.done()
-      })
   } catch (e) {
     console.error(e.stack)
   }
-}
+})
 
 // node should be cacheable
-exports.testEnablingCache = function (test) {
+builder.add(function testEnablingCache(test) {
   var count = 0
   function incrementCount() {
     return ++count
   }
   this.graph.add('count-incremented', incrementCount)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({'count1': 'count-incremented'})
     .builds({'count2': 'count-incremented'})
     .builds({'count3': 'count-incremented'})
@@ -815,14 +680,10 @@ exports.testEnablingCache = function (test) {
       test.equal(count, 1, 'Response should be returned through promise')
       test.equal(result.count1 + result.count2 + result.count3 + result.count4 + result.count5, 1 + 1 + 1 + 1 + 1, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // nodes should only be added with a 2-part hyphen-delimited name
-exports.testHyphenatedNames = function (test) {
+builder.add(function testHyphenatedNames(test) {
   this.graph = this.graph.clone()
   this.graph.enforceTwoPartNames(shepherd.ErrorMode.ERROR)
 
@@ -859,4 +720,4 @@ exports.testHyphenatedNames = function (test) {
   }
 
   test.done()
-}
+})
