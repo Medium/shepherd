@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -9,7 +11,7 @@ exports.setUp = function (done) {
 }
 
 // test that profiling returns profiling data
-exports.testProfiling = function (test) {
+builder.add(function testProfiling(test) {
   function testDelay(delayMs) {
     return Q.delay(delayMs, true)
   }
@@ -32,7 +34,7 @@ exports.testProfiling = function (test) {
     .compile([])
     .setProfilingFrequency(1)
 
-  builder.run({})
+  return builder.run({})
     .then(function (data) {
       var profileData = builder.getProfileData()
       test.equal(profileData.length, 1, "There should only be 1 profiling bucket")
@@ -47,12 +49,11 @@ exports.testProfiling = function (test) {
       test.equal(delayedTimings['400'], 2, "There should be two responses in the 400ms bucket")
 
       builder.setProfilingFrequency(0)
-      test.done()
     })
-}
+})
 
 // test that profiling doesn't return a result (most of the time) when set to 0.00001
-exports.testMinimalProfiling = function (test) {
+builder.add(function testMinimalProfiling(test) {
   function testDelay(delayMs) {
     return Q.delay(delayMs, true)
   }
@@ -75,7 +76,7 @@ exports.testMinimalProfiling = function (test) {
     .compile([])
     .setProfilingFrequency(0.00001)
 
-  builder.run({})
+  return builder.run({})
     .then(function (data) {
       var profileData = builder.getProfileData()
       test.equal(profileData.length, 1, "There should only be 1 profiling bucket")
@@ -85,6 +86,5 @@ exports.testMinimalProfiling = function (test) {
       var delayedTimings = timings['response-delayed']
       test.equal(delayedTimings, undefined, "There should be no profile data")
       builder.setProfilingFrequency(0)
-      test.done()
     })
-}
+})

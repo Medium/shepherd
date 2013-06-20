@@ -1,5 +1,7 @@
 // Copyright 2013 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
@@ -9,7 +11,7 @@ exports.setUp = function (done) {
 }
 
 // test wildcard array types
-exports.testWildcardArrayTypes = function (test) {
+builder.add(function testWildcardArrayTypes(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph
@@ -24,7 +26,6 @@ exports.testWildcardArrayTypes = function (test) {
       .builds('array-mixed')
       .run()
       .then(test.ok.bind(test, "Mixed array should match wildcard type"))
-      .fail(test.fail.bind(test, "Mixed array should match wildcard type"))
   )
 
   promises.push(
@@ -34,7 +35,6 @@ exports.testWildcardArrayTypes = function (test) {
       .builds('array-empty')
       .run()
       .then(test.ok.bind(test, "Empty array should match wildcard type"))
-      .fail(test.fail.bind(test, "Empty array should match wildcard type"))
   )
 
   promises.push(
@@ -87,12 +87,11 @@ exports.testWildcardArrayTypes = function (test) {
       .fail(test.ok.bind(test, "User should not match wildcard type"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test wildcard types
-exports.testWildcardTypes = function (test) {
+builder.add(function testWildcardTypes(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph
@@ -107,7 +106,6 @@ exports.testWildcardTypes = function (test) {
       .builds('value-emptyArray')
       .run()
       .then(test.ok.bind(test, "Empty array should match wildcard type"))
-      .fail(test.fail.bind(test, "Empty array should match wildcard type"))
   )
 
   promises.push(
@@ -117,7 +115,6 @@ exports.testWildcardTypes = function (test) {
       .builds('value-null')
       .run()
       .then(test.ok.bind(test, "Null should match wildcard type"))
-      .fail(test.fail.bind(test, "Null should match wildcard type"))
   )
 
   promises.push(
@@ -127,7 +124,6 @@ exports.testWildcardTypes = function (test) {
       .builds('value-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined should match wildcard type"))
-      .fail(test.fail.bind(test, "Undefined should match wildcard type"))
   )
 
   promises.push(
@@ -137,7 +133,6 @@ exports.testWildcardTypes = function (test) {
       .builds('value-str')
       .run()
       .then(test.ok.bind(test, "String should match wildcard type"))
-      .fail(test.fail.bind(test, "String should match wildcard type"))
   )
 
   promises.push(
@@ -147,7 +142,6 @@ exports.testWildcardTypes = function (test) {
       .builds('value-object')
       .run()
       .then(test.ok.bind(test, "Object should match wildcard type"))
-      .fail(test.fail.bind(test, "Object should match wildcard type"))
   )
 
   promises.push(
@@ -157,15 +151,13 @@ exports.testWildcardTypes = function (test) {
       .builds('value-user')
       .run()
       .then(test.ok.bind(test, "User should match wildcard type"))
-      .fail(test.fail.bind(test, "User should match wildcard type"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that dot notation for child values work
-exports.testChildVariables = function (test) {
+builder.add(function testChildVariables(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('user', User)
@@ -176,17 +168,15 @@ exports.testChildVariables = function (test) {
     return user
   })
 
-  this.graph
+  return this.graph
     .newBuilder()
     .builds('user-withName.name')
     .run()
     .then(test.ok.bind(test, "User name should be returned"))
-    .fail(test.fail.bind(test, "User name should be returned"))
-    .fin(test.done)
-}
+})
 
 // test that the same type can only be added once
-exports.testDuplicateTypesFail = function (test) {
+builder.add(function testDuplicateTypesFail(test) {
   try {
     this.graph
       .type('number', Number)
@@ -197,58 +187,53 @@ exports.testDuplicateTypesFail = function (test) {
   }
 
   test.done()
-}
+})
 
 // test that enforcing types doesn't error with enforceTypes off
-exports.testMissingType = function (test) {
+builder.add(function testMissingType(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
-  this.graph
+  return this.graph
     .add('number-string', this.graph.literal(4))
     .newBuilder()
     .builds('number-string')
     .run()
     .then(test.fail.bind(test, "All responses must be typed"))
     .fail(test.ok.bind(test, "All responses must be typed"))
-    .fin(test.done)
-}
+})
 
 // test that nodes don't error with type checking disabled
-exports.testTypeCheckingDisabled = function (test) {
+builder.add(function testTypeCheckingDisabled(test) {
   this.graph.type('number', Number)
 
-  this.graph
+  return this.graph
     .add('number-string', this.graph.literal('Hello'))
     .newBuilder()
     .builds('number-string')
     .run()
     .then(test.ok.bind(test, "Type checking is disabled"))
-    .fail(test.fail.bind(test, "Type checking is disabled"))
-    .fin(test.done)
-}
+})
 
 // test that enforcing types doesn't error with enforceTypes off
-exports.testTypeCheckingWarning = function (test) {
+builder.add(function testTypeCheckingWarning(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.WARN)
 
   this.graph.type('number', Number)
 
   console.log("*** FOLLOWING LINES SHOULD WARN, IGNORE ***")
-  this.graph
+  return this.graph
     .add('number-string', this.graph.literal('Hello'))
     .newBuilder()
     .builds('number-string')
     .run()
     .then(test.ok.bind(test, "Type checking is disabled"))
-    .fail(test.fail.bind(test, "Type checking is disabled"))
     .fin(function () {
       console.log("*** YOU MAY RETURN TO WORRYING ABOUT WARNINGS ***")
-      test.done()
     })
-}
+})
 
 // test that single numbers work
-exports.testNumber = function (test) {
+builder.add(function testNumber(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('number', Number)
@@ -262,7 +247,6 @@ exports.testNumber = function (test) {
       .builds('number-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid number"))
-      .fail(test.fail.bind(test, "Undefined is a valid number"))
   )
 
   promises.push(
@@ -272,7 +256,6 @@ exports.testNumber = function (test) {
       .builds('number-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid number"))
-      .fail(test.fail.bind(test, "Null is a valid number"))
   )
 
   promises.push(
@@ -282,7 +265,6 @@ exports.testNumber = function (test) {
       .builds('number-number')
       .run()
       .then(test.ok.bind(test, "4 is a valid number"))
-      .fail(test.fail.bind(test, "4 is a valid number"))
   )
 
   promises.push(
@@ -325,12 +307,11 @@ exports.testNumber = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid number"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that single booleans work
-exports.testBoolean = function (test) {
+builder.add(function testBoolean(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('boolean', Boolean)
@@ -344,7 +325,6 @@ exports.testBoolean = function (test) {
       .builds('boolean-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid boolean"))
-      .fail(test.fail.bind(test, "Undefined is a valid boolean"))
   )
 
   promises.push(
@@ -354,7 +334,6 @@ exports.testBoolean = function (test) {
       .builds('boolean-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid boolean"))
-      .fail(test.fail.bind(test, "Null is a valid boolean"))
   )
 
   promises.push(
@@ -384,7 +363,6 @@ exports.testBoolean = function (test) {
       .builds('boolean-bool')
       .run()
       .then(test.ok.bind(test, "true is a valid boolean"))
-      .fail(test.fail.bind(test, "true is a valid boolean"))
   )
 
   promises.push(
@@ -407,12 +385,11 @@ exports.testBoolean = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid boolean"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that single strings work
-exports.testString = function (test) {
+builder.add(function testString(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('string', String)
@@ -426,7 +403,6 @@ exports.testString = function (test) {
       .builds('string-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid string"))
-      .fail(test.fail.bind(test, "Undefined is a valid string"))
   )
 
   promises.push(
@@ -436,7 +412,6 @@ exports.testString = function (test) {
       .builds('string-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid string"))
-      .fail(test.fail.bind(test, "Null is a valid string"))
   )
 
   promises.push(
@@ -456,7 +431,6 @@ exports.testString = function (test) {
       .builds('string-string')
       .run()
       .then(test.ok.bind(test, "'Hello' is a valid string"))
-      .fail(test.fail.bind(test, "'Hello' is a valid string"))
   )
 
   promises.push(
@@ -489,12 +463,11 @@ exports.testString = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid string"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that single objects work
-exports.testObject = function (test) {
+builder.add(function testObject(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('object', Object)
@@ -508,7 +481,6 @@ exports.testObject = function (test) {
       .builds('object-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid object"))
-      .fail(test.fail.bind(test, "Undefined is a valid object"))
   )
 
   promises.push(
@@ -518,7 +490,6 @@ exports.testObject = function (test) {
       .builds('object-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid object"))
-      .fail(test.fail.bind(test, "Null is a valid object"))
   )
 
   promises.push(
@@ -558,7 +529,6 @@ exports.testObject = function (test) {
       .builds('object-object')
       .run()
       .then(test.ok.bind(test, "Object is a valid object"))
-      .fail(test.fail.bind(test, "Object is a valid object"))
   )
 
   promises.push(
@@ -571,12 +541,11 @@ exports.testObject = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid object"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that single objects work
-exports.testObject = function (test) {
+builder.add(function testObject2(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('object', Object)
@@ -590,7 +559,6 @@ exports.testObject = function (test) {
       .builds('object-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid object"))
-      .fail(test.fail.bind(test, "Undefined is a valid object"))
   )
 
   promises.push(
@@ -600,7 +568,6 @@ exports.testObject = function (test) {
       .builds('object-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid object"))
-      .fail(test.fail.bind(test, "Null is a valid object"))
   )
 
   promises.push(
@@ -640,7 +607,6 @@ exports.testObject = function (test) {
       .builds('object-object')
       .run()
       .then(test.ok.bind(test, "Object is a valid object"))
-      .fail(test.fail.bind(test, "Object is a valid object"))
   )
 
   promises.push(
@@ -653,12 +619,11 @@ exports.testObject = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid object"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that single user objects work
-exports.testUserType = function (test) {
+builder.add(function testUserType(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('user', User)
@@ -672,7 +637,6 @@ exports.testUserType = function (test) {
       .builds('user-undefined')
       .run()
       .then(test.ok.bind(test, "Undefined is a valid user"))
-      .fail(test.fail.bind(test, "Undefined is a valid user"))
   )
 
   promises.push(
@@ -682,7 +646,6 @@ exports.testUserType = function (test) {
       .builds('user-null')
       .run()
       .then(test.ok.bind(test, "Null is a valid user"))
-      .fail(test.fail.bind(test, "Null is a valid user"))
   )
 
   promises.push(
@@ -732,7 +695,6 @@ exports.testUserType = function (test) {
       .builds('user-user')
       .run()
       .then(test.ok.bind(test, "User is a valid user"))
-      .fail(test.fail.bind(test, "User is a valid user"))
   )
 
   promises.push(
@@ -745,12 +707,11 @@ exports.testUserType = function (test) {
       .fail(test.ok.bind(test, "Array is not a valid user"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 // test that arrays work
-exports.testArray = function (test) {
+builder.add(function testArray(test) {
   this.graph.enforceTypes(shepherd.ErrorMode.ERROR)
 
   this.graph.type('strs', [String])
@@ -785,7 +746,6 @@ exports.testArray = function (test) {
       .builds('strs-empty')
       .run()
       .then(test.ok.bind(test, "Empty arrays are valid"))
-      .fail(test.fail.bind(test, "Empty arrays are valid"))
   )
 
   promises.push(
@@ -795,7 +755,6 @@ exports.testArray = function (test) {
       .builds('strs-strs')
       .run()
       .then(test.ok.bind(test, "All string arrays are valid"))
-      .fail(test.fail.bind(test, "All string arrays are valid"))
   )
 
   promises.push(
@@ -805,7 +764,6 @@ exports.testArray = function (test) {
       .builds('strs-mixedValid')
       .run()
       .then(test.ok.bind(test, "Mixed string and null / undefined arrays are valid"))
-      .fail(test.fail.bind(test, "Mixed string and null / undefined arrays are valid"))
   )
 
   promises.push(
@@ -845,7 +803,6 @@ exports.testArray = function (test) {
       .builds('users-mixed')
       .run()
       .then(test.ok.bind(test, "Mixed user and null / undefined arrays are valid"))
-      .fail(test.fail.bind(test, "Mixed user and null / undefined arrays are valid"))
   )
 
   promises.push(
@@ -858,9 +815,8 @@ exports.testArray = function (test) {
       .fail(test.ok.bind(test, "Booleans in user arrays are invalid"))
   )
 
-  Q.all(promises)
-    .fin(test.done)
-}
+  return Q.all(promises)
+})
 
 function User() {}
 

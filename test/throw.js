@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -9,7 +11,7 @@ exports.setUp = function (done) {
 }
 
 // errors thrown at top level should be caught and fed to the run() request
-exports.testErrorThrown = function (test) {
+builder.add(function testErrorThrown(test) {
   var error = this.error
 
   // add a node which throws an error
@@ -17,7 +19,7 @@ exports.testErrorThrown = function (test) {
     throw error
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -28,14 +30,10 @@ exports.testErrorThrown = function (test) {
     .fail(function (err) {
       test.equal(err, error, 'Error should be returned through promise.fail()')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // errors returned through next() should be caught and fed to the run() request
-exports.testErrorViaCallback = function (test) {
+builder.add(function testErrorViaCallback(test) {
   var error = this.error
 
   // add a node which throws an error
@@ -43,7 +41,7 @@ exports.testErrorViaCallback = function (test) {
     return next(error)
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -54,14 +52,10 @@ exports.testErrorViaCallback = function (test) {
     .fail(function (err) {
       test.equal(err, error, 'Error should be returned through promise.fail()')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // errors returned through a rejected promise should be caught and fed to the run() request
-exports.testErrorViaPromise = function (test) {
+builder.add(function testErrorViaPromise(test) {
   var error = this.error
 
   // add a node which throws an error
@@ -71,7 +65,7 @@ exports.testErrorViaPromise = function (test) {
     return deferred.promise
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('throws')
     .run({}, function (err, result) {
       test.equal(err, error, 'Error should be returned to run() callback')
@@ -82,14 +76,10 @@ exports.testErrorViaPromise = function (test) {
     .fail(function (err) {
       test.equal(err, error, 'Error should be returned through promise.fail()')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // errors should return with graphInfo field
-exports.testThrowWithGraphInfo = function (test) {
+builder.add(function testThrowWithGraphInfo(test) {
   // add a node which throws an error
   this.graph.add('throws', function (next) {
     throw new Error('Threw an error')
@@ -104,7 +94,7 @@ exports.testThrowWithGraphInfo = function (test) {
   this.graph.add('third', this.graph.subgraph)
     .builds('second')
 
-  this.graph.newBuilder('builtToFail')
+  return this.graph.newBuilder('builtToFail')
     .builds('third')
     .run()
     .then(function (result) {
@@ -122,8 +112,4 @@ exports.testThrowWithGraphInfo = function (test) {
         }
       }
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})

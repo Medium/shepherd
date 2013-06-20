@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -8,7 +10,7 @@ exports.setUp = function (done) {
 }
 
 // throw an error when an invalid arg is referenced
-exports.testErrorWhenMissingArg = function (test) {
+builder.add(function testErrorWhenMissingArg(test) {
   this.graph.add('val-echo', function (val) {
     return val
   }, ['val'])
@@ -23,10 +25,10 @@ exports.testErrorWhenMissingArg = function (test) {
   }
 
   test.done()
-}
+})
 
 // test that building a node by the same name twice fails
-exports.testDuplicateAliasesFail = function (test) {
+builder.add(function testDuplicateAliasesFail(test) {
   this.graph.add('bool-true', this.graph.literal(true))
 
   try {
@@ -48,10 +50,10 @@ exports.testDuplicateAliasesFail = function (test) {
   }
 
   test.done()
-}
+})
 
 // test that a subgraph can return the expected input
-exports.testReturns = function (test) {
+builder.add(function testReturns(test) {
   var name = 'Jeremy'
 
   this.graph.add('str-toUpper', function (str) {
@@ -69,22 +71,16 @@ exports.testReturns = function (test) {
       .using({str: 'args.name'})
     .returns('str-toUpper')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-toUpper')
     .run({name: name})
     .then(function (data) {
       test.equal(data['name-toUpper'], name.toUpperCase(), "Name should be upper-cased")
     })
-    .fail(function (e) {
-      test.fail("Should not return through .fail()")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // test that a subgraph can return the first element in an array
-exports.testReturnsArray = function (test) {
+builder.add(function testReturnsArray(test) {
   var name = 'Jeremy'
 
   this.graph.add('str-toUpper', function (str) {
@@ -102,16 +98,10 @@ exports.testReturnsArray = function (test) {
       .using('str-toUpper')
     .returns('array-fromStr.0')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-toUpper')
     .run({name: name})
     .then(function (data) {
       test.equal(data['name-toUpper'], name.toUpperCase(), "Name should be upper-cased")
     })
-    .fail(function (e) {
-      test.fail("Should not return through .fail()")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
