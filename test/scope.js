@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -8,7 +10,7 @@ exports.setUp = function (done) {
 }
 
 // public nodes should be able to access each other in the same scope
-exports.testSameScopePublic = function (test) {
+builder.add(function testSameScopePublic(test) {
   var name = 'Jeremy'
 
   this.graph.setScope("scope1")
@@ -24,7 +26,7 @@ exports.testSameScopePublic = function (test) {
     .builds('name-fromLiteral')
       .modifiers({'str-toUpper': 'str'})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
@@ -32,11 +34,10 @@ exports.testSameScopePublic = function (test) {
     .then(function (data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
     })
-    .fin(test.done.bind(test))
-}
+})
 
 // private nodes should be able to be accessed within the same scope
-exports.testSameScopePrivate = function (test) {
+builder.add(function testSameScopePrivate(test) {
   var name = 'Jeremy'
 
   this.graph.setScope("scope1")
@@ -52,7 +53,7 @@ exports.testSameScopePrivate = function (test) {
     .builds('name-fromLiteral_')
       .modifiers({'str-toUpper': 'str'})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
@@ -60,11 +61,10 @@ exports.testSameScopePrivate = function (test) {
     .then(function (data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
     })
-    .fin(test.done.bind(test))
-}
+})
 
 // public nodes should be able to access each other in different scopes
-exports.testDifferentScopePublic = function (test) {
+builder.add(function testDifferentScopePublic(test) {
   var name = 'Jeremy'
 
   this.graph.setScope("scope1")
@@ -80,7 +80,7 @@ exports.testDifferentScopePublic = function (test) {
     .builds('name-fromLiteral')
       .modifiers({'str-toUpper': 'str'})
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
@@ -88,11 +88,10 @@ exports.testDifferentScopePublic = function (test) {
     .then(function (data) {
       test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
     })
-    .fin(test.done.bind(test))
-}
+})
 
 // private nodes should not be able to be accessed from different scopes
-exports.testDifferentScopePrivate = function (test) {
+builder.add(function testDifferentScopePrivate(test) {
   var name = 'Jeremy'
 
   this.graph.setScope("scope1")
@@ -117,10 +116,10 @@ exports.testDifferentScopePrivate = function (test) {
     test.ok("Should not be able to access private nodes from different scopes")
   }
   test.done()
-}
+})
 
 // private nodes should not be able to be accessed from builder .builds()
-exports.testPrivateBuilds = function (test) {
+builder.add(function testPrivateBuilds(test) {
   var name = 'Jeremy'
 
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
@@ -133,10 +132,10 @@ exports.testPrivateBuilds = function (test) {
     test.ok("Should not be able to access private nodes from builders")
   }
   test.done()
-}
+})
 
 // private nodes should not be able to be accessed from builder .using()
-exports.testPrivateUsing = function (test) {
+builder.add(function testPrivateUsing(test) {
   var name = 'Jeremy'
 
   this.graph.add('str-toUpper', function (str) {
@@ -155,4 +154,4 @@ exports.testPrivateUsing = function (test) {
     test.ok("Should not be able to access private nodes from builders")
   }
   test.done()
-}
+})

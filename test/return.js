@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -9,14 +11,14 @@ exports.setUp = function (done) {
 }
 
 // responses returned immediately should be handled
-exports.testResponseReturned = function (test) {
+builder.add(function testResponseReturned(test) {
   var response = this.response
 
   this.graph.add('returns', function () {
     return response
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -28,21 +30,17 @@ exports.testResponseReturned = function (test) {
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // responses sent through node-style callback should be handled
-exports.testResponseViaCallback = function (test) {
+builder.add(function testResponseViaCallback(test) {
   var response = this.response
 
   this.graph.add('returns', function (next) {
     return next(undefined, response)
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -54,14 +52,10 @@ exports.testResponseViaCallback = function (test) {
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // responses sent through promise should be handled
-exports.testResponseViaPromise = function (test) {
+builder.add(function testResponseViaPromise(test) {
   var response = this.response
 
   this.graph.add('returns', function (next) {
@@ -70,7 +64,7 @@ exports.testResponseViaPromise = function (test) {
     return deferred.promise
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('returns')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -82,8 +76,4 @@ exports.testResponseViaPromise = function (test) {
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})

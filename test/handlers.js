@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -8,7 +10,7 @@ exports.setUp = function (done) {
 }
 
 // test pre handlers for a graph
-exports.testPre = function (test) {
+builder.add(function testPre(test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -33,20 +35,18 @@ exports.testPre = function (test) {
     return data
   })
 
-  builder.run({
+  return builder.run({
     str1: "hello",
     str2: "hello"
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
     test.equal(data['preprocessed'], 'hello?!hello?!', "Output string should be hello?!hello?!")
-    test.done()
   })
-  .end()
-}
+})
 
 // test post handlers for a graph
-exports.testPost = function (test) {
+builder.add(function testPost(test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -71,20 +71,18 @@ exports.testPost = function (test) {
     return data
   })
 
-  builder.run({
+  return builder.run({
     str1: "hello",
     str2: "hello"
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
     test.equal(data['postprocessed'], 'hellohello?!', "Output string should be hellohello?!")
-    test.done()
   })
-  .end()
-}
+})
 
 // test mixed handlers for a graph
-exports.testMixed = function (test) {
+builder.add(function testMixed(test) {
   this.graph.add("str-duplicated", function (str) {
     return str + str
   }, ['str'])
@@ -123,14 +121,12 @@ exports.testMixed = function (test) {
     return data
   })
 
-  builder.run({
+  return builder.run({
     str1: "hello",
     str2: "hello"
   })
   .then(function (data) {
     test.equal(data['basic'], 'hellohello', "Output string should be hellohello")
     test.equal(data['processed'], '<h3>"hello"</h3><h3>"hello"</h3>?!', "Output string should be <h3>\"hello\"</h3><h3>\"hello\"</h3>?!")
-    test.done()
   })
-  .end()
-}
+})

@@ -1,6 +1,8 @@
 // Copyright 2012 The Obvious Corporation.
 var oid = require('oid')
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 var utils = require('../lib/utils')
 
 // set up a graph for testing
@@ -10,7 +12,7 @@ exports.setUp = function (done) {
 }
 
 // verify that clones show up in the getClones() list
-exports.testGetClones = function (test) {
+builder.add(function testGetClones(test) {
   var graph1 = this.graph.clone()
   var graph2 = graph1.clone()
   var graph3 = graph2.clone()
@@ -32,10 +34,10 @@ exports.testGetClones = function (test) {
   test.equal(clones.length, 0, "Graph2 should have no clones")
 
   test.done()
-}
+})
 
 // verify that all builders are returned by getBuilders()
-exports.testGetBuilders = function (test) {
+builder.add(function testGetBuilders(test) {
   var builders = {}
   var builder1 = this.graph.newBuilder()
   var builder2 = this.graph.newBuilder()
@@ -65,10 +67,10 @@ exports.testGetBuilders = function (test) {
   test.equal(Object.keys(builders).length, 0, "There should be no builders remaining")
 
   test.done()
-}
+})
 
 // test that deep freeze works and prevents object mutations
-exports.testDeepFreeze = function (test) {
+builder.add(function testDeepFreeze(test) {
   this.graph.add('user-default', function () {
     return {name: 'Jeremy'}
   })
@@ -78,7 +80,7 @@ exports.testDeepFreeze = function (test) {
     return user
   }, ['user'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .freezeOutputs()
     .builds('user-mutate')
       .using({user: 'user-default'})
@@ -86,16 +88,10 @@ exports.testDeepFreeze = function (test) {
     .then(function (data) {
       test.equal(data['user-mutate'].name, 'Jeremy', "Name should not have changed")
     })
-    .fail(function (e) {
-      test.fail(e.stack)
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // test that deep freeze doesn't work for private nodes
-exports.testDeepFreezePrivate = function (test) {
+builder.add(function testDeepFreezePrivate(test) {
   this.graph.add('user-default_', this.graph.literal({name: 'Jeremy'}))
 
   this.graph.add('user-mutate_', function (user) {
@@ -107,23 +103,17 @@ exports.testDeepFreezePrivate = function (test) {
     .builds('user-default_')
       .modifiers('user-mutate_')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .freezeOutputs()
     .builds('user-mutated')
     .run()
     .then(function (data) {
       test.equal(data['user-mutated'].name, 'MUTTTTTAAAAATTTEEE', "Name should have changed")
     })
-    .fail(function (e) {
-      test.fail(e.stack)
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // test that deep freeze throws an error if used with 'use strict'
-exports.testDeepFreezeError = function (test) {
+builder.add(function testDeepFreezeError(test) {
   "use strict"
   this.graph.add('user-default', function () {
     return {name: 'Jeremy'}
@@ -134,7 +124,7 @@ exports.testDeepFreezeError = function (test) {
     return user
   }, ['user'])
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .freezeOutputs()
     .builds('user-mutate')
       .using({user: 'user-default'})
@@ -145,13 +135,10 @@ exports.testDeepFreezeError = function (test) {
     .fail(function (e) {
       test.equal(e.message, "Cannot assign to read only property 'name' of #<Object>", "Should have thrown an assertion error")
     })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // Test that parseFnParams works.
-exports.testParseFnParams = function (test) {
+builder.add(function testParseFnParams(test) {
   function fn1 () { return 1 }
   function fn2 (x) { return 2 }
   function fn3 (x, $y, _z) { return 3 }
@@ -166,4 +153,4 @@ exports.testParseFnParams = function (test) {
   test.deepEqual(parseFnParams(function (K, J, H) {}), ['K', 'J', 'H'], 'Three params, anonymous funciton')
 
   test.done()
-}
+})

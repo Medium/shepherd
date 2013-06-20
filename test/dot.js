@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -8,7 +10,7 @@ exports.setUp = function (done) {
 }
 
 // test creating a dot graph from a given
-exports.testDotGraph = function (test) {
+builder.add(function testDotGraph(test) {
   this.graph.add('name-fromLiteral', {_literal: 'Jeremy'})
   this.graph.add('name-toUpper', function (name) {return name.toUpperCase()}, ['name'])
   this.graph.add('name-toLower', function (name) {return name.toLowerCase()}, ['name'])
@@ -38,4 +40,4 @@ exports.testDotGraph = function (test) {
 
   test.equal(dotOutput, expectedOutput, "Graph dot output should be predictable")
   test.done()
-}
+})

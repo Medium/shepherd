@@ -1,5 +1,7 @@
 // Copyright 2013 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -7,7 +9,7 @@ exports.setUp = function (done) {
   done()
 }
 
-exports.testHashDeduplication = function (test) {
+builder.add(function testHashDeduplication(test) {
   var counters = {
     a: 0,
     b: 0
@@ -29,7 +31,7 @@ exports.testHashDeduplication = function (test) {
   this.graph.add('dep-fourth', this.graph.literal('fourth'))
   this.graph.add('dep-fifth', this.graph.literal('fifth'))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({a1: 'val-a'})
     .builds({a2: 'val-a'})
       .using('!dep-first')
@@ -46,10 +48,4 @@ exports.testHashDeduplication = function (test) {
       test.equal(counters.a, 1, "val-a should only have been ran once")
       test.equal(counters.b, 1, "val-b should only have been ran once")
     })
-    .fail(function (e) {
-      console.error(e.stack)
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})

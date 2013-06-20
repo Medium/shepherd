@@ -1,8 +1,8 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
-var shepherd = require ('../lib/shepherd')
 var nodeunitq = require('nodeunitq')
 var builder = new nodeunitq.Builder(exports)
+var shepherd = require ('../lib/shepherd')
 
 var logBuffer = []
 var oldLog = null

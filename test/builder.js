@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 var shepherd = require ('../lib/shepherd')
 
 // set up a graph for testing
@@ -9,7 +11,7 @@ exports.setUp = function (done) {
 }
 
 // test that builder names are required
-exports.testRequiredBuilderNames = function (test) {
+builder.add(function testRequiredBuilderNames(test) {
   this.graph.enforceBuilderNames(shepherd.ErrorMode.ERROR)
 
   try {
@@ -19,11 +21,11 @@ exports.testRequiredBuilderNames = function (test) {
     test.equal(e.message, "A builder name is required", "Should have thrown an error due to a missing name")
   }
   test.done()
-}
+})
 
 // should throw an error if a node is missing
-exports.testMissingBuilderNode = function (test) {
-  this.graph.newBuilder()
+builder.add(function testMissingBuilderNode(test) {
+  return this.graph.newBuilder()
     .builds('user')
     .run({}, function (err, result) {
       test.ok(/Node 'user' was not found/.test(err.message), 'Error should be defined: ' + err)
@@ -34,18 +36,14 @@ exports.testMissingBuilderNode = function (test) {
     .fail(function (err) {
       test.ok(/Node 'user' was not found/.test(err.message), 'Error should be defined: ' + err)
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // should be able to retrieve member variables of graph nodes
-exports.testMemberVariable = function (test) {
+builder.add(function testMemberVariable(test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('user', this.graph.literal(nodeValue))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('user.name')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -57,14 +55,10 @@ exports.testMemberVariable = function (test) {
     .then(function (result) {
       test.equal(result['user.name'], nodeValue.name, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test that nodes with identical functions and dependencies only run once
-exports.testDeduplication = function (test) {
+builder.add(function testDeduplication(test) {
   var numCalls = 0
   var user = {name: 'Jeremy'}
   var getUser = function () {
@@ -75,7 +69,7 @@ exports.testDeduplication = function (test) {
   this.graph.add('user2', getUser)
   this.graph.add('user3', getUser)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('user1')
     .builds('user2')
     .builds('user3')
@@ -95,14 +89,10 @@ exports.testDeduplication = function (test) {
       test.equal(result['user3'], user, 'Response.user3 should be returned through promise')
       test.equal(numCalls, 1, 'getUser should only be called once')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test that nodes with identical functions and different dependencies run multiple times
-exports.testDeduplication = function (test) {
+builder.add(function testDeduplication2(test) {
   var numCalls = 0
   var user = {name: 'Jeremy'}
   var getUser = function () {
@@ -117,7 +107,7 @@ exports.testDeduplication = function (test) {
   this.graph.add('b', 2)
   this.graph.add('c', 3)
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('user1')
     .builds('user2')
     .builds('user3')
@@ -137,18 +127,14 @@ exports.testDeduplication = function (test) {
       test.equal(result['user3'], user, 'Response.user3 should be returned through promise')
       test.equal(numCalls, 3, 'getUser should only be called once')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test creating a builder which remaps a node to a new name
-exports.testRemappingBuilderNode = function (test) {
+builder.add(function testRemappingBuilderNode(test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('userObj', this.graph.literal(nodeValue))
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({'user': 'userObj'})
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -160,14 +146,10 @@ exports.testRemappingBuilderNode = function (test) {
     .then(function (result) {
       test.equal(result['user'], nodeValue, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test creating a graph node which remaps a dependency to a new name
-exports.testRemappingNodeDependency = function (test) {
+builder.add(function testRemappingNodeDependency(test) {
   var nodeValue = {name: 'Jeremy'}
   this.graph.add('userObj', this.graph.literal(nodeValue))
 
@@ -180,7 +162,7 @@ exports.testRemappingNodeDependency = function (test) {
     .builds({'!user': 'userObj'})
     .builds('username-fromUser').using('user')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('username-test')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
@@ -193,14 +175,10 @@ exports.testRemappingNodeDependency = function (test) {
     .then(function (result) {
       test.equal(result['username-test'], nodeValue.name, 'Response should be returned through promise')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test creating optional nodes from the builder
-exports.testBuilderOptionalNode = function (test) {
+builder.add(function testBuilderOptionalNode(test) {
   var output = ""
   var username = "Jeremy"
 
@@ -217,7 +195,7 @@ exports.testBuilderOptionalNode = function (test) {
   this.graph.add("str-test", this.graph.subgraph)
     .args('str')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('?str-toUpper').using({str: 'username'})
     .builds('?str-toLower').using({str: 'username'})
     .builds('str-test').using('str-toLower')
@@ -234,24 +212,14 @@ exports.testBuilderOptionalNode = function (test) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
       test.equal(output, 'lower', 'Only lower should have been ran')
     })
-    .then(function () {
-      test.done()
-    })
-    .end()
-}
+})
 
 // test that builds can be mapped directly to literals
-exports.testBuildLiteral = function (test) {
-  this.graph.newBuilder()
+builder.add(function testBuildLiteral(test) {
+  return this.graph.newBuilder()
     .builds({filterBy: this.graph.literal('hello')})
     .run()
     .then(function (data) {
       test.equal(data.filterBy, 'hello', "Value should match the literal")
     })
-    .fail(function (e) {
-      test.fail("Value should match the literal")
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})

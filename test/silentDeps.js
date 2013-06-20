@@ -1,5 +1,7 @@
 // Copyright 2012 The Obvious Corporation.
 var Q = require('kew')
+var nodeunitq = require('nodeunitq')
+var builder = new nodeunitq.Builder(exports)
 
 // set up a graph for testing
 exports.setUp = function (done) {
@@ -8,7 +10,7 @@ exports.setUp = function (done) {
 }
 
 // test that when nodes are provided to a parent node, only the silent nodes runs
-exports.testOnlySilentsRun = function (test) {
+builder.add(function testOnlySilentsRun(test) {
   var err = new Error('failed')
   var failCount = 0
   var successCount = 0
@@ -60,24 +62,18 @@ exports.testOnlySilentsRun = function (test) {
     .builds('!throws-third')
     .returns('val-second')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('test-thing')
     .run()
-    .then(function (data) {
-      test.fail("This should have failed")
-    })
     .fail(function (e) {
       test.equal(e, err, "Error was the expected error")
       test.equal(failCount, 3, "Three failures were recorded")
       test.equal(successCount, 0, "No successes were recorded")
     })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // testing invalid silent builds in the builder
-exports.testInvalidSilentBuildBuilder = function (test) {
+builder.add(function testInvalidSilentBuildBuilder(test) {
   this.graph.add('name', this.graph.literal('Jeremy'))
 
   try {
@@ -89,10 +85,10 @@ exports.testInvalidSilentBuildBuilder = function (test) {
     test.equal(e.message.indexOf('! and ? operators must be on the key') >= 0, true, "Should not use ! in value of build objects")
   }
   test.done()
-}
+})
 
 // testing invalid silent builds in the graph
-exports.testInvalidSilentBuildGraph = function (test) {
+builder.add(function testInvalidSilentBuildGraph(test) {
   this.graph.add('name', this.graph.literal('Jeremy'))
 
   try {
@@ -103,10 +99,10 @@ exports.testInvalidSilentBuildGraph = function (test) {
     test.equal(e.message.indexOf('! and ? operators must be on the key') >= 0, true, "Should not use ! in value of build objects")
   }
   test.done()
-}
+})
 
 // test that silent dependencies call the same function once during builder calls but still call the private inputs
-exports.testSeparateBuilderCalls = function (test) {
+builder.add(function testSeparateBuilderCalls(test) {
   var counterA = 0
   var counterB = 0
   function testCount(prefix) {
@@ -120,7 +116,7 @@ exports.testSeparateBuilderCalls = function (test) {
     return true
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({count1: 'count-incr'})
       .using('prefix-default')
     .builds({count2: 'count-incr'})
@@ -130,15 +126,11 @@ exports.testSeparateBuilderCalls = function (test) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
       test.equal(data.count2, 'hello0', 'count2 should be 1')
       test.equal(counterB, 1)
-      test.done()
     })
-    .fail(function (e) {
-      console.error(e)
-    })
-}
+})
 
 // test that silent dependencies cause separate function calls from the builder when different dependencies are used
-exports.testSeparateBuilderCallsObject = function (test) {
+builder.add(function testSeparateBuilderCallsObject(test) {
   var counterA = 0
   var counterB = 0
   function testCount(prefix) {
@@ -152,7 +144,7 @@ exports.testSeparateBuilderCallsObject = function (test) {
     return true
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({count1: 'count-incr'})
       .using('prefix-default')
     .builds({count2: 'count-incr'})
@@ -162,15 +154,11 @@ exports.testSeparateBuilderCallsObject = function (test) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
       test.equal(data.count2, 'hello0', 'count2 should be 1')
       test.equal(counterB, 1)
-      test.done()
     })
-    .fail(function (e) {
-      console.error(e)
-    })
-}
+})
 
 // test that silent dependencies cause separate function calls from the builder when different dependencies are used
-exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
+builder.add(function testSeparateBuilderCallsObjectIncorrect(test) {
   var counterA = 0
   var counterB = 0
   function testCount(prefix) {
@@ -184,7 +172,7 @@ exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
     return true
   })
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({count1: 'count-incr'})
       .using('prefix-default')
     .builds({count2: 'count-incr'})
@@ -194,15 +182,11 @@ exports.testSeparateBuilderCallsObjectIncorrect = function (test) {
       test.equal(data.count1, 'hello0', 'count1 should be 0')
       test.equal(data.count2, 'hello0', 'count2 should be 1')
       test.equal(counterB, 1)
-      test.done()
     })
-    .fail(function (e) {
-      console.error(e)
-    })
-}
+})
 
 // test that silent dependencies cause separate function calls from subgraphs when different dependencies are used
-exports.testSeparateSubgraphCalls = function (test) {
+builder.add(function testSeparateSubgraphCalls(test) {
   var counterA = 0
   var counterB = 0
   function testCount(prefix) {
@@ -230,7 +214,7 @@ exports.testSeparateSubgraphCalls = function (test) {
     .builds('count-incr')
       .using('!dummy2', 'prefix-default')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds({count1: 'count-first'})
     .builds({count2: 'count-second'})
     .builds({count3: 'count-first'})
@@ -242,15 +226,11 @@ exports.testSeparateSubgraphCalls = function (test) {
       test.equal(data.count3, 'hello0', 'count1 should be 0')
       test.equal(data.count4, 'hello0', 'count2 should be 0')
       test.equal(counterB, 2, 'Should have ran the silent deps twice')
-      test.done()
     })
-    .fail(function (e) {
-      console.error(e)
-    })
-}
+})
 
 // test that silent dependencies with child members fail
-exports.testDynamicGetters = function (test) {
+builder.add(function testDynamicGetters(test) {
   try {
 
   var error = new Error("NO")
@@ -266,7 +246,7 @@ exports.testDynamicGetters = function (test) {
   })
     .builds('!obj-fromLiteral.shouldThrow')
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('test-shouldThrow')
     .run()
     .then(function () {
@@ -275,18 +255,15 @@ exports.testDynamicGetters = function (test) {
     .fail(function (e) {
       test.ok("Should have thrown an error")
     })
-    .fin(function () {
-      test.done()
-    })
 
   } catch (e) {
     console.error(e.stack)
   }
-}
+})
 
 // guarantee that silent nodes w/ disableNodeCache() don't force cache disabling
 // for non-silent nodes
-exports.testDeduplicationSilentDeps = function (test) {
+builder.add(function testDeduplicationSilentDeps(test) {
   var counter = 0
   this.graph.add('bool-incrementCounter', function () {
     counter++
@@ -298,7 +275,7 @@ exports.testDeduplicationSilentDeps = function (test) {
   })
   .disableNodeCache()
 
-  this.graph.newBuilder()
+  return this.graph.newBuilder()
     .builds('!bool-disablesCache')
     .builds({counter1: 'bool-incrementCounter'})
     .builds({counter2: 'bool-incrementCounter'})
@@ -306,16 +283,10 @@ exports.testDeduplicationSilentDeps = function (test) {
     .then(function (data) {
       test.equal(counter, 1, "Counter should only have been incremented once")
     })
-    .fail(function (e) {
-      test.fail(e.stack)
-    })
-    .fin(function () {
-      test.done()
-    })
-}
+})
 
 // Test that recursive dependencies are deduplicated
-exports.testRecursiveDependencyError = function (test) {
+builder.add(function testRecursiveDependencyError(test) {
   this.graph.add('throws-first', function () {
     throw new Error('nooo')
   })
@@ -335,8 +306,8 @@ exports.testRecursiveDependencyError = function (test) {
   var compiledNodes = builder.getCompiledNodes()
   test.equal(compiledNodes['builderOutput-test_1'].inputs['throws-first'], undefined, "Dependency should have been deduplicated")
   test.equal(compiledNodes['builderOutput-test_1'].inputs['throws-second'], undefined, "Dependency should have been deduplicated")
-    
-  builder.run()
+
+  return builder.run()
     .then(function () {
       test.fail("Should have thrown an error")
     })
@@ -349,7 +320,4 @@ exports.testRecursiveDependencyError = function (test) {
         }
       }
     })
-    .fin(function () {
-      test.done()
-    })
-}
+})
