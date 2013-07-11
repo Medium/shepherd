@@ -12,7 +12,7 @@ builder.add(function testNodeNames(test) {
   var bad = function (str) {
     test.throws(function () {
       ok(str)
-    })
+    }, 'Expected error: ' + str)
   }
 
   ok('req')
@@ -29,12 +29,21 @@ builder.add(function testNodeNames(test) {
 
   ok('req.params.*')
   ok('req_params_*') // internal-only representation
+  ok('req.0') // arrays
+  ok('req.10') // arrays
 
   bad('1req')
-  bad('req.1')
   bad('req..body')
   bad('!!req')
   bad('req.body-fromX')
+  bad('req.1x')
+  bad('req.*x')
+  bad('**')
+  bad('req.**')
+  bad('req.*.*')
+  bad('req.*.*')
+  bad('req.*.abc')
+  bad('req*')
 
   test.done()
 })
