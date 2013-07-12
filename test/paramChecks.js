@@ -11,6 +11,16 @@ function funXY(x, y) {
   return [x, y]
 }
 
+function testFailsWithErr(test, errStr, promise) {
+  return promise
+    .then(function (data) { test.fail('Invalid parameters should fail') })
+    .fail(function (err) {
+      test.notEqual(err.message.indexOf(errStr), -1,
+          'Expected error message like "' + errStr + '" but was "' +
+          err.message + '"')
+    })
+}
+
 
 exports.setUp = function (done) {
   this.graph = new shepherd.Graph().enforceMatchingParams()
@@ -113,116 +123,80 @@ builder.add(function testShepherdBuildsParamsSucceeds(test) {
 builder.add(function testMissingParamsInlineFails(test) {
   this.graph.add('funXY', funXY, ['x'])
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg = err.message.indexOf('declared [x] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1})
+  return testFailsWithErr(test, 'declared [x] but were actually [x, y]', promise)
 })
 
 // A node that's missing declared parameters should fail
 builder.add(function testMissingParamsChainedFails(test) {
   this.graph.add('funXY', funXY).args('x')
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg = err.message.indexOf('declared [x] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1})
+  return testFailsWithErr(test, 'declared [x] but were actually [x, y]', promise)
 })
 
 // A node with extra declared parameters should fail
 builder.add(function testExtraParamsInlineFails(test) {
   this.graph.add('funX', funX, ['x', 'y'])
 
-  return this.graph.newBuilder()
-    .builds('funX')
-    .run({x: 1, y: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg = err.message.indexOf('declared [x, y] but were actually [x]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funX')
+      .run({x: 1, y: 2})
+  return testFailsWithErr(test, 'declared [x, y] but were actually [x]', promise)
 })
 
 // A node with extra declared parameters should fail
 builder.add(function testExtraParamsChainedFails(test) {
   this.graph.add('funX', funX).args('x', 'y')
 
-  return this.graph.newBuilder()
-    .builds('funX')
-    .run({x: 1, y: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg = err.message.indexOf('declared [x, y] but were actually [x]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funX')
+      .run({x: 1, y: 2})
+  return testFailsWithErr(test, 'declared [x, y] but were actually [x]', promise)
 })
 
 // A node with swapped parameters should fail
 builder.add(function testSwapParamsInlineFails(test) {
   this.graph.add('funXY', funXY, ['y', 'x'])
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1, y: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg =
-          err.message.indexOf('declared [y, x] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1, y: 2})
+  return testFailsWithErr(test, 'declared [y, x] but were actually [x, y]', promise)
 })
 
 // A node with swapped parameters should fail
 builder.add(function testSwapParamsChainedFails(test) {
   this.graph.add('funXY', funXY).args('y', 'x')
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1, y: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg =
-          err.message.indexOf('declared [y, x] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1, y: 2})
+  return testFailsWithErr(test, 'declared [y, x] but were actually [x, y]', promise)
 })
 
 // A node with swapped parameters should fail
 builder.add(function testMisnamedParamsInlineFails(test) {
   this.graph.add('funXY', funXY, ['x', 'z'])
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1, z: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg =
-          err.message.indexOf('declared [x, z] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1, z: 2})
+  return testFailsWithErr(test, 'declared [x, z] but were actually [x, y]', promise)
 })
 
 // A node with swapped parameters should fail
 builder.add(function testMisnamedParamsChainedFails(test) {
   this.graph.add('funXY', funXY).args('x', 'z')
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({x: 1, z: 2})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg =
-          err.message.indexOf('declared [x, z] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({x: 1, z: 2})
+  return testFailsWithErr(test, 'declared [x, z] but were actually [x, y]', promise)
 })
 
 // A node with params supplied through builds() should pass
@@ -241,13 +215,8 @@ builder.add(function testShepherdExtraBuildsParamsFails(test) {
     .builds('z-byY')
       .using('y-byFoo')
 
-  return this.graph.newBuilder()
-    .builds('funXY')
-    .run({params: this.graph.literal({x: 2})})
-    .then(function (data) { test.fail('Invalid params should fail') })
-    .fail(function (err) {
-      var hasMsg =
-          err.message.indexOf('declared [x, y, z] but were actually [x, y]')
-      test.notEqual(hasMsg, -1)
-    })
+  var promise = this.graph.newBuilder()
+      .builds('funXY')
+      .run({params: this.graph.literal({x: 2})})
+  return testFailsWithErr(test, 'declared [x, y, z] but were actually [x, y]', promise)
 })
