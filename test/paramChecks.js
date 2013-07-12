@@ -116,6 +116,7 @@ builder.add(function testMissingParamsInlineFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg = err.message.indexOf('declared [x] but were actually [x, y]')
       test.notEqual(hasMsg, -1)
@@ -129,6 +130,7 @@ builder.add(function testMissingParamsChainedFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg = err.message.indexOf('declared [x] but were actually [x, y]')
       test.notEqual(hasMsg, -1)
@@ -142,6 +144,7 @@ builder.add(function testExtraParamsInlineFails(test) {
   return this.graph.newBuilder()
     .builds('funX')
     .run({x: 1, y: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg = err.message.indexOf('declared [x, y] but were actually [x]')
       test.notEqual(hasMsg, -1)
@@ -155,6 +158,7 @@ builder.add(function testExtraParamsChainedFails(test) {
   return this.graph.newBuilder()
     .builds('funX')
     .run({x: 1, y: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg = err.message.indexOf('declared [x, y] but were actually [x]')
       test.notEqual(hasMsg, -1)
@@ -168,6 +172,7 @@ builder.add(function testSwapParamsInlineFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1, y: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg =
           err.message.indexOf('declared [y, x] but were actually [x, y]')
@@ -182,6 +187,7 @@ builder.add(function testSwapParamsChainedFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1, y: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg =
           err.message.indexOf('declared [y, x] but were actually [x, y]')
@@ -196,6 +202,7 @@ builder.add(function testMisnamedParamsInlineFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1, z: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg =
           err.message.indexOf('declared [x, z] but were actually [x, y]')
@@ -210,6 +217,7 @@ builder.add(function testMisnamedParamsChainedFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1, z: 2})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg =
           err.message.indexOf('declared [x, z] but were actually [x, y]')
@@ -236,6 +244,7 @@ builder.add(function testShepherdExtraBuildsParamsFails(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({params: this.graph.literal({x: 2})})
+    .then(function (data) { test.fail('Invalid params should fail') })
     .fail(function (err) {
       var hasMsg =
           err.message.indexOf('declared [x, y, z] but were actually [x, y]')
