@@ -364,6 +364,7 @@ builder.add(function testUnless2(test) {
       .builds({'user1': 'user-addId'})
         .using('user-jon')
       .unless('user-jon.id')
+    .end()
     .define('jeremyWithId')
       .builds({'user2': 'user-addId'})
         .using('user-jeremy')
@@ -415,6 +416,16 @@ builder.add(function testUnless3(test) {
 builder.add(function testIncompleteBlock(test) {
   try {
     this.graph.newBuilder().define('incomplete').run()
+    test.ok(false, 'Expected error')
+  } catch (e) {
+    test.ok(e.message.indexOf('Incomplete') != -1, e.stack)
+  }
+  test.done()
+})
+
+builder.add(function testIncompleteBlock2(test) {
+  try {
+    this.graph.newBuilder().define('incomplete').define('incomplete2').end().run()
     test.ok(false, 'Expected error')
   } catch (e) {
     test.ok(e.message.indexOf('Incomplete') != -1, e.stack)
