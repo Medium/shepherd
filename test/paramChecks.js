@@ -220,3 +220,35 @@ builder.add(function testShepherdExtraBuildsParamsFails(test) {
       .run({params: this.graph.literal({x: 2})})
   return testFailsWithErr(test, 'declared [x, y, z] but were actually [x, y]', promise)
 })
+
+// Test that no params fails
+builder.add(function testNoParamsFails(test) {
+  this.graph.add('funXY', funXY)
+
+  var promise = this.graph.newBuilder()
+    .builds('funXY')
+    .run({x: 1, z: 2})
+  return testFailsWithErr(test, 'declared [] but were actually [x, y]', promise)
+})
+
+// Test that subgraph's don't get checked
+builder.add(function testSubgraphSucceeds(test) {
+  this.graph.add('arr-funXY', funXY, ['x', 'y'])
+  this.graph.add('str-fromArr', function (arr) {
+    return arr.join('')
+  }, ['arr'])
+
+  this.graph.add('x-double', this.graph.subgraph, ['x', 'y'])
+    .builds('arr-funXY')
+      .using('args.*')
+    .builds('str-fromArr')
+      .using('arr-funXY')
+
+  return this.graph.newBuilder()
+    .builds('x-double')
+    .run({x: 'a', y: 'b'})
+    .then(function (results) {
+      test.equal(results['x-double'], 'ab',
+          "graph.subgraph shouldn't be param checked")
+    })
+})
