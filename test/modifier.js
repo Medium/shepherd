@@ -172,8 +172,8 @@ builder.add(function testModifiersWithPrefixedNodes(test) {
     })
 })
 
-// test creating modifiers with optional fields
-builder.add(function testOptionalModifiers(test) {
+// test creating modifiers with void fields
+builder.add(function testVoidModifiers(test) {
   var username = "Jeremy"
   this.graph.add('str-base', this.graph.literal(username))
 

@@ -248,8 +248,27 @@ builder
     .using({userId: 2})
 ```
 
+### Void nodes 
+
+Nodes can also be built and run without their output being provided to the
+requester by prefixing the node name with **?** *e.g.: ?helper-fromId* (if the
+node is remapped, prefix the alias with **?** *e.g.: {'?helper': 
+'helper-fromId'}*). This is useful if you need to build a value for another
+node, but don't want to pass it to the callback function.
+
+```javascript
+graph.add('user-byEmail', function (user) {
+    return user
+  }, ['?email'])
+  .builds('?userId-byEmail').using('email')
+  .builds('user-byId').using('userId-byEmail')
+```
+
+In the above example, **?email** and **userID-byEmail** are not passed to the 
+callback function, because they are prefixed with **?**.
+
 ### Silent nodes
-Nodes can also be built and ran without their output being provided to the requester by prefixing the node name with **!** *e.g.: !validateEmail* (if the node is remapped, prefix the alias with **!** *e.g.: {'!validator': 'validateEmail'}*). This is particularly useful in the case of validators which may throw an `Error` if a condition isn't met. The following example uses a silent node to actually stop the work from being done:
+Nodes can also be built and run before all other nodes by prefixing the node name with **!** *e.g.: !validateEmail* (if the node is remapped, prefix the alias with **!** *e.g.: {'!validator': 'validateEmail'}*). This is particularly useful in the case of validators which may throw an `Error` if a condition isn't met. The following example uses a silent node to actually stop the work from being done:
 
 ```javascript
 // create a node which will call an update e-mail function for a user but will only run if validateEmail is successful
