@@ -177,8 +177,8 @@ builder.add(function testRemappingNodeDependency(test) {
     })
 })
 
-// test creating optional nodes from the builder
-builder.add(function testBuilderOptionalNode(test) {
+// test creating void nodes from the builder
+builder.add(function testBuilderVoidNode(test) {
   var output = ""
   var username = "Jeremy"
 
@@ -204,14 +204,46 @@ builder.add(function testBuilderOptionalNode(test) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through callback')
       test.equal(output, 'lower', 'Only lower should have been ran')
     })
-    .fail(function (err) {
-      console.error(err.stack)
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
       test.equal(output, 'lower', 'Only lower should have been ran')
     })
+})
+
+builder.add(function testBuilderVoidNodeMapped(test) {
+  var username = "Jeremy"
+
+  this.graph.add("upper", function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  this.graph.add("str-test", this.graph.subgraph, ['str'])
+
+  return this.graph.newBuilder()
+  .configure({'str-toUpper': 'upper'}).using({str: 'username'})
+    .builds('str-test').using('str-toUpper')
+    .run({username: username})
+    .then(function (result) {
+      test.equal(result['str-test'], username.toUpperCase())
+    })
+})
+
+builder.add(function testInvalidConfigures(test) {
+  var username = "Jeremy"
+
+  this.graph.add("upper", function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  try {
+    this.graph.newBuilder()
+    .configure({'?str-toUpper': 'upper'}).using({str: 'username'})
+  } catch (e) {
+    if (!/invalid node name/.test(e.message)) {
+      throw e
+    }
+  }
+  test.done()
 })
 
 // test that builds can be mapped directly to literals
