@@ -9,14 +9,14 @@ exports.setUp = function (done) {
   done()
 }
 
-// test that when nodes are provided to a parent node, only the silent nodes runs
-builder.add(function testOnlySilentsRun(test) {
+// test that when nodes are provided to a parent node, only the important nodes runs
+builder.add(function testOnlyImportantsRun(test) {
   var err = new Error('failed')
   var failCount = 0
   var successCount = 0
 
   this.graph.add('throws-first', function () {
-    test.ok("First silent node ran")
+    test.ok("First important node ran")
     failCount++
     return Q.delay(500)
       .then(function () {
@@ -25,7 +25,7 @@ builder.add(function testOnlySilentsRun(test) {
   })
 
   this.graph.add('throws-second', function () {
-    test.ok("Second silent node ran")
+    test.ok("Second important node ran")
     failCount++
     return Q.delay(500)
       .then(function () {
@@ -34,7 +34,7 @@ builder.add(function testOnlySilentsRun(test) {
   })
 
   this.graph.add('throws-third', function () {
-    test.ok("Third silent node ran")
+    test.ok("Third important node ran")
     failCount++
     return Q.delay(500)
       .then(function () {
@@ -72,8 +72,8 @@ builder.add(function testOnlySilentsRun(test) {
     })
 })
 
-// testing invalid silent builds in the builder
-builder.add(function testInvalidSilentBuildBuilder(test) {
+// testing invalid important builds in the builder
+builder.add(function testInvalidImportantBuildBuilder(test) {
   this.graph.add('name', this.graph.literal('Jeremy'))
 
   try {
@@ -87,8 +87,8 @@ builder.add(function testInvalidSilentBuildBuilder(test) {
   test.done()
 })
 
-// testing invalid silent builds in the graph
-builder.add(function testInvalidSilentBuildGraph(test) {
+// testing invalid important builds in the graph
+builder.add(function testInvalidImportantBuildGraph(test) {
   this.graph.add('name', this.graph.literal('Jeremy'))
 
   try {
@@ -101,7 +101,7 @@ builder.add(function testInvalidSilentBuildGraph(test) {
   test.done()
 })
 
-// test that silent dependencies call the same function once during builder calls but still call the private inputs
+// test that important dependencies call the same function once during builder calls but still call the private inputs
 builder.add(function testSeparateBuilderCalls(test) {
   var counterA = 0
   var counterB = 0
@@ -129,7 +129,7 @@ builder.add(function testSeparateBuilderCalls(test) {
     })
 })
 
-// test that silent dependencies cause separate function calls from the builder when different dependencies are used
+// test that important dependencies cause separate function calls from the builder when different dependencies are used
 builder.add(function testSeparateBuilderCallsObject(test) {
   var counterA = 0
   var counterB = 0
@@ -157,7 +157,7 @@ builder.add(function testSeparateBuilderCallsObject(test) {
     })
 })
 
-// test that silent dependencies cause separate function calls from the builder when different dependencies are used
+// test that important dependencies cause separate function calls from the builder when different dependencies are used
 builder.add(function testSeparateBuilderCallsObjectIncorrect(test) {
   var counterA = 0
   var counterB = 0
@@ -185,7 +185,7 @@ builder.add(function testSeparateBuilderCallsObjectIncorrect(test) {
     })
 })
 
-// test that silent dependencies cause separate function calls from subgraphs when different dependencies are used
+// test that important dependencies cause separate function calls from subgraphs when different dependencies are used
 builder.add(function testSeparateSubgraphCalls(test) {
   var counterA = 0
   var counterB = 0
@@ -225,11 +225,11 @@ builder.add(function testSeparateSubgraphCalls(test) {
       test.equal(data.count2, 'hello0', 'count2 should be 0')
       test.equal(data.count3, 'hello0', 'count1 should be 0')
       test.equal(data.count4, 'hello0', 'count2 should be 0')
-      test.equal(counterB, 2, 'Should have ran the silent deps twice')
+      test.equal(counterB, 2, 'Should have ran the important deps twice')
     })
 })
 
-// test that silent dependencies with child members fail
+// test that important dependencies with child members fail
 builder.add(function testDynamicGetters(test) {
   try {
 
@@ -261,9 +261,9 @@ builder.add(function testDynamicGetters(test) {
   }
 })
 
-// guarantee that silent nodes w/ disableNodeCache() don't force cache disabling
-// for non-silent nodes
-builder.add(function testDeduplicationSilentDeps(test) {
+// guarantee that important nodes w/ disableNodeCache() don't force cache disabling
+// for non-important nodes
+builder.add(function testDeduplicationImportantDeps(test) {
   var counter = 0
   this.graph.add('bool-incrementCounter', function () {
     counter++

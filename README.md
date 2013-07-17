@@ -267,18 +267,38 @@ graph.add('user-byEmail', function (user) {
 In the above example, **?email** and **userID-byEmail** are not passed to the 
 callback function, because they are prefixed with **?**.
 
-### Silent nodes
-Nodes can also be built and run before all other nodes by prefixing the node name with **!** *e.g.: !validateEmail* (if the node is remapped, prefix the alias with **!** *e.g.: {'!validator': 'validateEmail'}*). This is particularly useful in the case of validators which may throw an `Error` if a condition isn't met. The following example uses a silent node to actually stop the work from being done:
+### Important nodes 
+
+Nodes can also be built and run before all other nodes by prefixing the node
+name with **!**, *e.g.: !validateEmail* (if the node is remapped, prefix the
+alias with **!** *e.g.: {'!validator': 'validateEmail'}*) This is similar to
+**!important** in CSS.
+
+This is particularly useful in the case of validators and permission-checks, 
+which may throw an `Error` if a condition isn't met. The following
+example uses an important node to actually stop the work from being done:
 
 ```javascript
-// create a node which will call an update e-mail function for a user but will only run if validateEmail is successful
-graph.add('updateEmail', updateEmail, ['user', 'email'])
+// create a node which will call an update e-mail function for a user iff validateEmail is successful
+graph.add('updateEmail', graph.subgraph, ['user', 'email'])
   // take the email as an input
   .args('email')
   // call validateEmail with the email arg passed in to updateEmail
   .builds('!validateEmail')
     .using('args.email')
+  .builds('bool-writeEmailToDatabase')
+    .using('args.email')
 ```
+
+In the above example, **validateEmail** will get run before
+**bool-writeEmailToDatabase**, and all the nodes that
+**bool-writeEmailToDatabase** depends on.
+
+Like **!important**, this is a one-shot deal: you can't have importanter nodes
+or **!!important**. It does not make sense for important nodes to depend on
+other important nodes.
+
+Important nodes are also void: they do not pass their outputs to their handler.
 
 ### .using()
 Nodes defined via `.builds()` will often need to be wired up to know what context they should be called in. `.using()` provides this ability by specifying where a node should get its inputs from. Inputs may be literals (using the rules provided above), anonymous functions, other nodes, or arguments provided to the parent node (in the case of a `Graph` node).
