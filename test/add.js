@@ -402,7 +402,7 @@ builder.add(function testNumArguments(test) {
     .run({})
 })
 
-// functions should run in order based on normal and silent dependencies
+// functions should run in order based on normal and important dependencies
 builder.add(function testNodeOrder(test) {
   var output = ''
   var appender = function (str) {
