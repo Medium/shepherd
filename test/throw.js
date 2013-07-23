@@ -107,9 +107,7 @@ builder.add(function testThrowWithGraphInfo(test) {
       var failureNodes = graphInfo.failureNodeChain
       var keys = ['throws', 'first', 'second', 'third']
       for (var i = 0; i < keys.length; i++) {
-        for (var key in failureNodes[i]) {
-          test.equal(key, keys[i], "Nodes should return in the appropriate order")
-        }
+        test.equal(failureNodes[i], keys[i], "Nodes should return in the appropriate order")
       }
     })
 })
