@@ -88,7 +88,7 @@ Using these syntaxes provides a lot of benefits as nodes that take in args with 
 
 ```javascript
 // uppercases a name, expects a 'name' variable
-graph.add('name-toUpper', function (name) { return name }, ['name'])
+graph.add('name-toUpper', function (name) { return name.toUpperCase() }, ['name'])
 
 // provides a name, will be provided as the 'name' arg due to the -
 graph.add('name-fromLiteral', graph.literal('Jeremy'))
