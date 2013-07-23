@@ -2,10 +2,11 @@
 var Q = require('kew')
 var nodeunitq = require('nodeunitq')
 var builder = new nodeunitq.Builder(exports)
+var graph
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new (require ('../lib/shepherd')).Graph
+  graph = this.graph = new (require ('../lib/shepherd')).Graph
   done()
 }
 
@@ -317,5 +318,20 @@ builder.add(function testRecursiveDependencyError(test) {
       for (var i = 0; i < keys.length; i++) {
         test.equal(failureNodes[i], keys[i], "Nodes should return in the appropriate order")
       }
+    })
+})
+
+builder.add(function testBuilderOutput(test) {
+  graph.add('echo', graph.subgraph, ['val'])
+
+  return graph.newBuilder('output')
+    .builds({'!echo1': 'echo'}).using({val: 1})
+    .builds({'?echo2': 'echo'}).using({val: 2})
+    .builds({'echo3': 'echo'}).using({val: 3})
+    .run()
+    .then(function (data) {
+      test.equal(undefined, data['echo1'])
+      test.equal(undefined, data['echo2'])
+      test.equal(3, data['echo3'])
     })
 })
