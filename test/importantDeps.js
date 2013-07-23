@@ -315,9 +315,7 @@ builder.add(function testRecursiveDependencyError(test) {
       var failureNodes = e.graphInfo.failureNodeChain
       var keys = ['throws-first', 'throws-second', 'throws-third', 'builderOutput-test_1']
       for (var i = 0; i < keys.length; i++) {
-        for (var key in failureNodes[i]) {
-          test.equal(key, keys[i], "Nodes should return in the appropriate order")
-        }
+        test.equal(failureNodes[i], keys[i], "Nodes should return in the appropriate order")
       }
     })
 })
