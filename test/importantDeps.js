@@ -335,3 +335,41 @@ builder.add(function testBuilderOutput(test) {
       test.equal(3, data['echo3'])
     })
 })
+
+builder.add(function testImportantChild(test) {
+  var sentEmail = 0
+  graph.add('sendEmail', function () {
+    sentEmail++
+    return true
+  })
+
+  var counter = 0
+  graph.add('counter-inc', function () {
+    counter++
+    return counter
+  })
+
+  graph.add('throws-ifFalse', function (val) {
+    if (!val) throw new Error('throws-ifFalse')
+    return true
+  }, ['val'])
+
+  graph.add('counter-maybeInc', graph.subgraph, ['isOk'])
+    .builds('!throws-ifFalse').using({val: 'args.isOk'})
+    .builds('counter-inc')
+
+  graph.add('sendEmail-afterMaybeInc', graph.subgraph, ['isOk'])
+    .builds('!counter-maybeInc').using('args.isOk')
+    .builds('sendEmail')
+
+  return graph.newBuilder('ok')
+    .builds('sendEmail-afterMaybeInc').using({isOk: false})
+    .run()
+    .fail(function (err) {
+      if (!/throws-ifFalse/.test(err.message)) throw err
+    })
+    .then(function () {
+      test.equal(0, counter)
+      test.equal(0, sentEmail)
+    })
+})
