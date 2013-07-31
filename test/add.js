@@ -422,13 +422,10 @@ builder.add(function testNodeOrder(test) {
     .builds('e')
     .run({}, function (err, result) {
       test.equal(err, undefined, 'Error should be undefined')
-      test.equal(output, 'abcde', 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
+      test.equal(output, 'abcde')
     })
     .then(function (result) {
-      test.equal(output, 'abcde', 'Response should be returned through promise')
+      test.equal(output, 'abcde')
     })
 })
 
