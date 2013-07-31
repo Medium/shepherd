@@ -45,13 +45,7 @@ builder.add(function testMemberVariable(test) {
 
   return this.graph.newBuilder()
     .builds('user.name')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user.name'], nodeValue.name, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user.name'], nodeValue.name, 'Response should be returned through promise')
     })
@@ -73,16 +67,7 @@ builder.add(function testDeduplication(test) {
     .builds('user1')
     .builds('user2')
     .builds('user3')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user1'], user, 'Response.user1 should be returned through callback')
-      test.equal(result['user2'], user, 'Response.user2 should be returned through callback')
-      test.equal(result['user3'], user, 'Response.user3 should be returned through callback')
-      test.equal(numCalls, 1, 'getUser should only be called once')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user1'], user, 'Response.user1 should be returned through promise')
       test.equal(result['user2'], user, 'Response.user2 should be returned through promise')
@@ -111,16 +96,7 @@ builder.add(function testDeduplication2(test) {
     .builds('user1')
     .builds('user2')
     .builds('user3')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user1'], user, 'Response.user1 should be returned through callback')
-      test.equal(result['user2'], user, 'Response.user2 should be returned through callback')
-      test.equal(result['user3'], user, 'Response.user3 should be returned through callback')
-      test.equal(numCalls, 3, 'getUser should only be called once')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user1'], user, 'Response.user1 should be returned through promise')
       test.equal(result['user2'], user, 'Response.user2 should be returned through promise')
@@ -136,13 +112,7 @@ builder.add(function testRemappingBuilderNode(test) {
 
   return this.graph.newBuilder()
     .builds({'user': 'userObj'})
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user'], nodeValue, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user'], nodeValue, 'Response should be returned through promise')
     })
@@ -164,14 +134,7 @@ builder.add(function testRemappingNodeDependency(test) {
 
   return this.graph.newBuilder()
     .builds('username-test')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['username-test'], nodeValue.name, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      console.error(err.stack)
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['username-test'], nodeValue.name, 'Response should be returned through promise')
     })
@@ -199,11 +162,7 @@ builder.add(function testBuilderVoidNode(test) {
     .builds('?str-toUpper').using({str: 'username'})
     .builds('?str-toLower').using({str: 'username'})
     .builds('str-test').using('str-toLower')
-    .run({username: username}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through callback')
-      test.equal(output, 'lower', 'Only lower should have been ran')
-    })
+    .run({username: username})
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
       test.equal(output, 'lower', 'Only lower should have been ran')

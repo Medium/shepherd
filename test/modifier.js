@@ -22,13 +22,7 @@ builder.add(function testAnonymousModifier(test) {
       .modifiers(function (name) {
         return name.toUpperCase()
       })
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['name-fromLiteral'], name.toUpperCase(), 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['name-fromLiteral'], name.toUpperCase(), 'Response should be returned through promise')
     })
@@ -60,14 +54,7 @@ builder.add(function testModifiersFromBuilder(test) {
     .builds('user')
       .using({name: 'nameHolder.name'})
       .modifiers({'addDate': 'obj'})
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result.user.name, userName, 'User name should be correct')
-      test.equal(result.user.date, now, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result.user.date, now, 'Response should be returned through promise')
     })
@@ -96,13 +83,7 @@ builder.add(function testModifiersFromSubgraph(test) {
 
   return this.graph.newBuilder()
     .builds('user-withDate')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-withDate'].date, now, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user-withDate'].date, now, 'Response should be returned through promise')
     })
@@ -128,13 +109,7 @@ builder.add(function testModifiersOrdering(test) {
   return this.graph.newBuilder()
     .builds('name-wrapped')
       .modifiers('addQuotes')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['name-wrapped'], '"' + nodeValue.substr(1) + '"', 'Response should be returned through promise')
     })
@@ -160,13 +135,7 @@ builder.add(function testModifiersWithPrefixedNodes(test) {
 
   return this.graph.newBuilder()
     .builds('user-wrapped')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['user-wrapped'].date, now, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result['user-wrapped'].date, now, 'Response should be returned through promise')
     })
@@ -189,13 +158,7 @@ builder.add(function testVoidModifiers(test) {
 
   return this.graph.newBuilder()
     .builds('str-test')
-    .run({username: username}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({username: username})
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
     })
@@ -240,14 +203,7 @@ builder.add(function testSubgraphAsModifier(test) {
     .builds('str-proxy2')
       .using({str: 'inputStr'})
       .modifiers('str-mixed')
-    .run({inputStr: startStr}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
-      test.equal(result['str-proxy2'], endStr, 'String should be mixed case')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({inputStr: startStr})
     .then(function (result) {
       test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
       test.equal(result['str-proxy2'], endStr, 'String should be mixed case')
@@ -289,10 +245,7 @@ builder.add(function testSubgraphAsModifierWithObjects(test) {
     return this.graph.newBuilder()
       .builds('str-proxy1')
         .using({obj: this.graph.literal({str: startStr})})
-      .run({inputStr: startStr}, function (err, result) {
-        test.equal(err, undefined, 'Error should be undefined')
-        test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
-      })
+      .run({inputStr: startStr})
       .then(function (result) {
         test.equal(result['str-proxy1'], endStr, 'String should be mixed case')
       })
