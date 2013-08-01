@@ -335,3 +335,138 @@ builder.add(function testBuilderOutput(test) {
       test.equal(3, data['echo3'])
     })
 })
+
+builder.add(function testImportantChild(test) {
+  var sentEmail = 0
+  graph.add('sendEmail', function () {
+    sentEmail++
+    return true
+  })
+
+  var counter = 0
+  graph.add('counter-inc', function () {
+    counter++
+    return counter
+  })
+
+  graph.add('throws-ifFalse', function (val) {
+    if (!val) throw new Error('throws-ifFalse')
+    return true
+  }, ['val'])
+
+  graph.add('counter-maybeInc', graph.subgraph, ['isOk'])
+    .builds('!throws-ifFalse').using({val: 'args.isOk'})
+    .builds('counter-inc')
+
+  graph.add('sendEmail-afterMaybeInc', graph.subgraph, ['isOk'])
+    .builds('!counter-maybeInc').using('args.isOk')
+    .builds('sendEmail')
+
+  return graph.newBuilder('ok')
+    .builds('sendEmail-afterMaybeInc').using({isOk: false})
+    .run()
+    .fail(function (err) {
+      if (!/throws-ifFalse/.test(err.message)) throw err
+    })
+    .then(function () {
+      test.equal(0, counter)
+      test.equal(0, sentEmail)
+    })
+})
+
+builder.add(function testImportantDescendant(test) {
+  var log = ''
+  graph.add('add-v', function (v) {
+    log += v
+    return true
+  }, ['v'])
+
+  graph.add('outer', graph.subgraph)
+    .builds('!add-v').using({v: 1})
+    .builds('inner')
+
+  graph.add('inner', graph.subgraph)
+    .builds('!add-v').using({v: 2})
+    .builds('innerinner')
+
+  graph.add('innerinner', graph.subgraph)
+    .builds('!add-v').using({v: 3})
+    .builds({v4: 'add-v'}).using({v: 4})
+
+  return graph.newBuilder('descendant')
+    .builds('outer')
+    .run()
+    .then(function (data) {
+      test.equal(true, data['outer'])
+      test.equal('1234', log)
+    })
+})
+
+builder.add(function testImportantDescendant2(test) {
+  var log = ''
+  graph.add('add-v', function (v) {
+    log += v
+    return true
+  }, ['v'])
+
+  graph.add('outer', graph.subgraph)
+    .builds('!inner')
+    .builds('add-v').using({v: 4})
+
+  graph.add('inner', graph.subgraph)
+    .builds('!innerinner')
+    .builds('add-v').using({v: 3})
+
+  graph.add('innerinner', graph.subgraph)
+    .builds({'!v1': 'add-v'}).using({v: 1})
+    .builds('add-v').using({v: 2})
+
+  return graph.newBuilder('descendant')
+    .builds('outer')
+    .run()
+    .then(function (data) {
+      test.equal(true, data['outer'])
+      test.equal('1234', log)
+    })
+})
+
+builder.add(function testImportantCycle(test) {
+  // Try to create a cycle between one and two
+  var log = ''
+  graph.add('one', function () {
+    log += 1
+    return 1
+  })
+  graph.add('two', function () {
+    log += 2
+    return 2
+  })
+
+  graph.add('important-one', function () { return 1 })
+    .builds('one')
+
+  graph.add('important-two', function () { return 2 })
+    .builds('two')
+
+  graph.add('inner-one', graph.subgraph)
+    .builds('!important-two')
+    .builds('one')
+
+  graph.add('inner-two', graph.subgraph)
+    .builds('!important-one')
+    .builds('two')
+
+  graph.add('outer', function (a, b) {
+      return a + b
+    })
+    .builds('inner-one')
+    .builds('inner-two')
+
+  return graph.newBuilder('descendant')
+    .builds('outer')
+    .run()
+    .then(function (data) {
+      test.equal(3, data['outer'])
+      test.equal('21', log)
+    })
+})
