@@ -32,9 +32,8 @@ builder.add(function testInputThroughSubgraphLiterals(test) {
 
   return this.graph.newBuilder()
     .builds('user-newFromSubgraph')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-newFromSubgraph'].userId, self.userId, 'userId should be set')
       test.equal(result['user-newFromSubgraph'].name, self.name, 'name should be set')
       test.equal(result['user-newFromSubgraph'].email, self.email, 'email should be set')
@@ -61,9 +60,8 @@ builder.add(function testInputThroughSubgraphNodeChildren(test) {
   return this.graph.newBuilder()
     .builds('user-newFromSubgraph')
       .using('user-existing')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-newFromSubgraph'].userId, self.userId, 'userId should be set')
       test.equal(result['user-newFromSubgraph'].name, self.name, 'name should be set')
       test.equal(result['user-newFromSubgraph'].email, self.email, 'email should be set')
@@ -90,9 +88,8 @@ builder.add(function testInputThroughSubgraphNodes(test) {
 
   return this.graph.newBuilder()
     .builds('user-newFromSubgraph')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-newFromSubgraph'].userId, self.userId, 'userId should be set')
       test.equal(result['user-newFromSubgraph'].name, self.name, 'name should be set')
       test.equal(result['user-newFromSubgraph'].email, self.email, 'email should be set')
@@ -107,9 +104,8 @@ builder.add(function testInputThroughBuilderLiterals(test) {
   return this.graph.newBuilder()
     .builds('user-new')
       .using({userId: this.userId}, {name: this.graph.literal(this.name)}, {email: this.graph.literal(this.email)})
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-new'].userId, self.userId, 'userId should be set')
       test.equal(result['user-new'].name, self.name, 'name should be set')
       test.equal(result['user-new'].email, self.email, 'email should be set')
@@ -131,9 +127,8 @@ builder.add(function testInputThroughBuilderNodeChildren(test) {
   return this.graph.newBuilder()
     .builds('user-new')
       .using('user-existing.email', 'user-existing.userId', 'user-existing.name')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-new'].userId, self.userId, 'userId should be set')
       test.equal(result['user-new'].name, self.name, 'name should be set')
       test.equal(result['user-new'].email, self.email, 'email should be set')
@@ -157,9 +152,8 @@ builder.add(function testInputThroughBuilderNodes(test) {
   return this.graph.newBuilder()
     .builds('user-new')
       .using('email-existing', 'name-existing', 'userId-existing')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-
+    .run({})
+    .then(function (result) {
       test.equal(result['user-new'].userId, self.userId, 'userId should be set')
       test.equal(result['user-new'].name, self.name, 'name should be set')
       test.equal(result['user-new'].email, self.email, 'email should be set')
@@ -184,13 +178,7 @@ builder.add(function testSubgraph(test) {
 
   return this.graph.newBuilder()
     .builds('fullName')
-    .run({firstName: firstName, lastName: lastName}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result.fullName, firstName + ' ' + lastName, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({firstName: firstName, lastName: lastName})
     .then(function (result) {
       test.equal(result.fullName, firstName + ' ' + lastName, 'Response should be returned through promise')
     })
@@ -221,14 +209,7 @@ builder.add(function testSubgraphWildcard(test) {
   return this.graph.newBuilder()
     .builds('fullName-overrides')
       .using({firstName: 'fname'}, {lastName: 'lname'})
-    .run({fname: firstName, lname: lastName}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result['fullName-overrides'], firstName + ' ' + newLastName, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      console.error(err)
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({fname: firstName, lname: lastName})
     .then(function (result) {
       test.equal(result['fullName-overrides'], firstName + ' ' + newLastName, 'Response should be returned through promise')
     })

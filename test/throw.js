@@ -21,9 +21,7 @@ builder.add(function testErrorThrown(test) {
 
   return this.graph.newBuilder()
     .builds('throws')
-    .run({}, function (err, result) {
-      test.equal(err, error, 'Error should be returned to run() callback')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result, undefined, 'Result should not be returned through promise')
     })
@@ -43,9 +41,7 @@ builder.add(function testErrorViaCallback(test) {
 
   return this.graph.newBuilder()
     .builds('throws')
-    .run({}, function (err, result) {
-      test.equal(err, error, 'Error should be returned to run() callback')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result, undefined, 'Result should not be returned through promise')
     })
@@ -67,9 +63,7 @@ builder.add(function testErrorViaPromise(test) {
 
   return this.graph.newBuilder()
     .builds('throws')
-    .run({}, function (err, result) {
-      test.equal(err, error, 'Error should be returned to run() callback')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result, undefined, 'Result should not be returned through promise')
     })

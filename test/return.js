@@ -20,13 +20,7 @@ builder.add(function testResponseReturned(test) {
 
   return this.graph.newBuilder()
     .builds('returns')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result.returns, response, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
@@ -42,13 +36,7 @@ builder.add(function testResponseViaCallback(test) {
 
   return this.graph.newBuilder()
     .builds('returns')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result.returns, response, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
@@ -66,13 +54,7 @@ builder.add(function testResponseViaPromise(test) {
 
   return this.graph.newBuilder()
     .builds('returns')
-    .run({}, function (err, result) {
-      test.equal(err, undefined, 'Error should be undefined')
-      test.equal(result.returns, response, 'Response should be returned through callback')
-    })
-    .fail(function (err) {
-      test.equal(true, false, 'Error handler in promise should not be called')
-    })
+    .run({})
     .then(function (result) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
