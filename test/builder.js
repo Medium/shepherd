@@ -3,10 +3,11 @@ var Q = require('kew')
 var nodeunitq = require('nodeunitq')
 var builder = new nodeunitq.Builder(exports)
 var shepherd = require ('../lib/shepherd')
+var graph
 
 // set up a graph for testing
 exports.setUp = function (done) {
-  this.graph = new shepherd.Graph
+  graph = this.graph = new shepherd.Graph
   done()
 }
 
@@ -165,7 +166,7 @@ builder.add(function testBuilderVoidNode(test) {
     .run({username: username})
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
-      test.equal(output, 'lower', 'Only lower should have been ran')
+      test.equal(output, 'upperlower', 'Only lower should have been ran')
     })
 })
 
@@ -212,5 +213,42 @@ builder.add(function testBuildLiteral(test) {
     .run()
     .then(function (data) {
       test.equal(data.filterBy, 'hello', "Value should match the literal")
+    })
+})
+
+builder.add(function testVoidNodeFeatures(test) {
+  var output = ''
+
+  graph.add('num', function (n) {
+    output += n
+    return n
+  }, ['n'])
+
+  graph.add('driver', function (x) {
+     test.equal(3, x)
+     return x
+    })
+    .builds({'!one': 'num'}).using({n: 1})
+    .builds({'?two': 'num'}).using({n: 2})
+    .builds({'three': 'num'}).using({n: 3})
+    .builds({'?four': 'num'}).using({n: 4})
+
+  return this.graph.newBuilder()
+    .builds('driver')
+    .builds({'?five': 'num'}).using({n: 5})
+    .run()
+    .then(function (data) {
+      test.equal(undefined, data['five'])
+      test.equal(undefined, data['?five'])
+      test.equal(3, data['driver'])
+
+      // The order isn't really defined, but all characters
+      // should be in the output string.
+      test.equal(5, output.length, output)
+      test.notEqual(-1, output.indexOf(1), output)
+      test.notEqual(-1, output.indexOf(2), output)
+      test.notEqual(-1, output.indexOf(3), output)
+      test.notEqual(-1, output.indexOf(4), output)
+      test.notEqual(-1, output.indexOf(5), output)
     })
 })

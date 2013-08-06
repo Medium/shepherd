@@ -201,6 +201,20 @@ graph.add('name-fromObjectUpper', graph.subgraph)
     .modifiers(toUpper)
 ```
 
+A node passed to `.modifiers()` may only have one input. If the node requires additional
+inputs, you must set those inputs first with a `.configure()` call.
+
+```javascript
+builder.add('str-method', function (str, method) {
+  return str[method]()
+}, ['str', 'method'])
+
+builder
+  .configure('str-method').using({method: graph.literal('toUpper')})
+  .builds('str-fromInput')
+    .modifiers('str-method')
+```
+
 ### Caching and de-duplication
 By default, a `Builder` instance will merge all nodes that it finds have the exact same handler function when it runs through its compile() phase and these functions will only ever run once during a `Builder#run` call. If you wish to make sure that a node is ran every time it is referenced by another node, you can call `.disableNodeCache()` on the node when adding the node to the `Graph`:
 
