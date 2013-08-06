@@ -141,8 +141,7 @@ builder.add(function testModifiersWithPrefixedNodes(test) {
     })
 })
 
-// test creating modifiers with void fields
-builder.add(function testVoidModifiers(test) {
+builder.add(function testStrConfiguredModifier(test) {
   var username = "Jeremy"
   this.graph.add('str-base', this.graph.literal(username))
 
@@ -151,7 +150,7 @@ builder.add(function testVoidModifiers(test) {
   }, ['str', 'modifier'])
 
   this.graph.add("str-test", this.graph.subgraph)
-    .builds('?str-modifier')
+    .configure('str-modifier')
       .using({'modifier': this.graph.literal('lower')})
     .builds('str-base')
       .modifiers('str-modifier')
@@ -161,6 +160,35 @@ builder.add(function testVoidModifiers(test) {
     .run({username: username})
     .then(function (result) {
       test.equal(result['str-test'], username.toLowerCase(), 'Response should be returned through promise')
+    })
+})
+
+// test creating modifiers with void fields
+builder.add(function testVoidModifiersDoesNotWork(test) {
+  var username = "Jeremy"
+  this.graph.add('str-base', this.graph.literal(username))
+
+  this.graph.add('str-modifier', function (str, modifier) {
+    return modifier === 'lower' ? str.toLowerCase() : str.toUpperCase()
+  }, ['str', 'modifier'])
+
+  this.graph.add("str-test", this.graph.subgraph)
+    // This shouldn't work, because all the arguments haven't been passed.
+    .builds('?str-modifier')
+      .using({'modifier': this.graph.literal('lower')})
+    .builds('str-base')
+      .modifiers('str-modifier')
+
+  return this.graph.newBuilder()
+    .builds('str-test')
+    .run({username: username})
+    .then(function () {
+      test.fail('Expected error')
+    })
+    .fail(function (e) {
+      if (!/Node 'str' was not found/.test(e.message)) {
+        throw e
+      }
     })
 })
 
