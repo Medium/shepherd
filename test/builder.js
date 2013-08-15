@@ -252,3 +252,40 @@ builder.add(function testVoidNodeFeatures(test) {
       test.notEqual(-1, output.indexOf(5), output)
     })
 })
+
+builder.add(function testCreateInjector(test) {
+  graph.add('num', function (n) {
+    return n
+  }, ['n'])
+
+  var builder = graph.newBuilder()
+    .builds({'one': 'num'}).using({n: 1})
+    .builds({'two-fromNum': 'num'}).using({n: 2})
+    .builds({'three': 'num'}).using({n: 3})
+
+  var handler = builder.createInjector(function (three, one, two) {
+    test.equal(3, three)
+    test.equal(2, two)
+    test.equal(1, one)
+  })
+
+  return builder.run().then(handler)
+})
+
+builder.add(function testCreateInjectorBadParams(test) {
+  graph.add('num', function (n) {
+    return n
+  }, ['n'])
+
+  var builder = graph.newBuilder()
+    .builds({'one': 'num'}).using({n: 1})
+
+  try {
+    builder.createInjector(function (two) {})
+    test.fail('Expected error')
+  } catch (e) {
+    if (e.message != 'No injector found for parameter: two') throw e
+  }
+
+  test.done()
+})
