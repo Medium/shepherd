@@ -115,35 +115,20 @@ builder.add(function testForceAdd(test) {
     })
 })
 
-// test that handlers are required for nodes
-builder.add(function testMissingNodesGraph(test) {
-  this.graph.add('testFn')
+// test that missing handlers are interpreted as Graph#subgraph
+builder.add(function testMissingNodeHandler(test) {
+  this.graph.add('square')
+    .args('x')
+    .fn(function (x) { return x*x } )
 
-  try {
-    this.graph.newBuilder()
-      .builds('testFn')
-      .compile()
-    test.fail('Functions without callbacks should throw errors')
-  } catch (e) {
-    test.equal(e.message.indexOf('requires a callback') > 0, true,
-               'Functions without callbacks should throw different errors: ' + e)
-  }
-  test.done()
-})
-
-// test that handlers are required for nodes
-builder.add(function testMissingNodesBuilder(test) {
   this.graph.add('testFn')
+    .builds('square').using({x: 4})
 
   return this.graph.newBuilder()
     .builds('testFn')
     .run()
-    .then(function () {
-      test.fail('Functions without callbacks should throw errors')
-    })
-    .fail(function (e) {
-      test.equal(e.message.indexOf('requires a callback') > 0, true,
-                 'Functions without callbacks should throw different errors: ' + e)
+    .then(function (data) {
+      test.equal(data['testFn'], 16, "A missing function should be interpreted as Graph#subgraph")
     })
 })
 

@@ -60,15 +60,18 @@ var graph = new shepherd.Graph()
 Adding nodes to the Graph
 -------
 
-In order to make the `Graph` do some work for you, you'll have to add some nodes with `Graph#add`. The first argument is the name of the node (which will be used to reference this node later), the second is the handler function to perform the work of this node, and the third is an optional array of arguments to be passed in to this node (which may be passed separately via .args()):
+In order to make the `Graph` do some work for you, you'll have to add some nodes with `Graph#add`. The first argument is the name of the node (which will be used to reference this node later), the second is the handler function to perform the work of this node, and the third is an optional array of arguments to be passed in to this node.
+
+An alternate syntax is to pass the function in via .fn() and the arguments via .args():
 
 ```javascript
 // add a function to uppercase an input string by passing the arguments in .add()
 graph.add("str-toUpper", function (str) { return str.toUpperCase() }, ['str'])
 
 // add a function to lowercase an input string by passing the arguments via chaining
-graph.add("str-toLower", function (str) { return str.toLowerCase() })
+graph.add("str-toLower")
   .args('str')
+  .fn(function (str) { return str.toLowerCase() })
 ```
 
 ### About node names
@@ -168,7 +171,7 @@ graph.add('name-toUpper', function (name) { return name.toUpperCase() }, ['name'
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
 
-graph.add('name-fromObjectUpper', graph.subgraph)
+graph.add('name-fromObjectUpper')
   .builds('name-fromObject')
     // the parent's name is 'name-fromObject' so the input into 'name-toUpper' is inferred to be 'name'
     .modifiers('name-toUpper', 'name-someOtherModifier')
@@ -182,7 +185,7 @@ graph.add('str-toUpper', function (str) { return str.toUpperCase() }, ['str'])
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
 
-graph.add('name-fromObjectUpper', graph.subgraph)
+graph.add('name-fromObjectUpper')
   .builds('name-fromObject')
     // inferring the name wouldn't work here as 'name-fromObject' would be converted to 'name'
     // and 'str-toUpper' is expecting 'str'
@@ -196,7 +199,7 @@ function toUpper(str) { return str.toUpperCase() }
 
 graph.add('name-fromObject', {_literal: 'Jeremy'})
 
-graph.add('name-fromObjectUpper', graph.subgraph)
+graph.add('name-fromObjectUpper')
   .builds('name-fromObject')
     .modifiers(toUpper)
 ```
@@ -262,41 +265,43 @@ builder
     .using({userId: 2})
 ```
 
-### Void nodes 
+### Void nodes
 
 Nodes can also be built and run without their output being provided to the
 requester by prefixing the node name with **?** *e.g.: ?helper-fromId* (if the
-node is remapped, prefix the alias with **?** *e.g.: {'?helper': 
+node is remapped, prefix the alias with **?** *e.g.: {'?helper':
 'helper-fromId'}*). This is useful if you need to build a value for another
 node, but don't want to pass it to the callback function.
 
 ```javascript
-graph.add('user-byEmail', function (user) {
-    return user
-  }, ['?email'])
+graph.add('user-byEmail')
+  .args('?email')
   .builds('?userId-byEmail').using('email')
   .builds('user-byId').using('userId-byEmail')
+  .fn(function (user) {
+    return user
+  })
 ```
 
-In the above example, **?email** and **userID-byEmail** are not passed to the 
+In the above example, **?email** and **?userID-byEmail** are not passed to the
 callback function, because they are prefixed with **?**.
 
-### Important nodes 
+### Important nodes
 
 Nodes can also be built and run before all other nodes by prefixing the node
 name with **!**, *e.g.: !validateEmail* (if the node is remapped, prefix the
 alias with **!** *e.g.: {'!validator': 'validateEmail'}*) This is similar to
 **!important** in CSS.
 
-This is particularly useful in the case of validators and permission-checks, 
+This is particularly useful in the case of validators and permission-checks,
 which may throw an `Error` if a condition isn't met. The following
 example uses an important node to actually stop the work from being done:
 
 ```javascript
 // create a node which will call an update e-mail function for a user iff validateEmail is successful
-graph.add('updateEmail', graph.subgraph, ['user', 'email'])
-  // take the email as an input
-  .args('email')
+graph.add('updateEmail')
+  // take the user and the email as an input
+  .args('user', 'email')
   // call validateEmail with the email arg passed in to updateEmail
   .builds('!validateEmail')
     .using('args.email')
@@ -339,7 +344,7 @@ builder
 // call str-toUpper from str-transformed by passing in the 'str' arg which was passed into 'str-transformed'
 graph.add('str-transformed', transformString)
   // take in 'str' as an arg but don't pass it through to transformString
-  .args('!str')
+  .args('?str')
   // pass the results of str-toUpper through to transformString
   .builds('str-toUpper')
     .using('args.str')
@@ -427,14 +432,22 @@ graph.add('user-deleteEmail', graph.deleter('email'), ['user'])
 ```
 
 ### Graph#subgraph()
-`Graph#subgraph()` returns a function which will always return the last non-callback parameter passed into it, this is useful for created a "subgraph" within a `Graph` which doesn't contain any new functions but may coordinate complex operations:
+When adding a node, if no value or function is specified, the function assigned to a node will default to `Graph#subgraph`.
 
 ```javascript
+// These two are equivalent.
 graph.add('user-updateEmail', graph.subgraph)
+graph.add('user-updateEmail')
+```
+
+`Graph#subgraph()` returns a function which will always return the last non-callback parameter passed into it. This is useful for creating a "subgraph" within a `Graph` which doesn't contain any new functions but may coordinate complex operations:
+
+```javascript
+graph.add('user-updateEmail')
   // takes user and email as inputs but doesn't send them to graph.subgraph
-  .args('!user', '!email')
+  .args('?user', '?email')
   // set the email value on the user
-  .builds('!user-setEmail')
+  .builds('?user-setEmail')
     .using('args.email')
     // validate the user has a valid e-mail address
     .modifiers('user-validateEmail')
@@ -446,17 +459,18 @@ graph.add('user-updateEmail', graph.subgraph)
 In addition, `Graph#subgraph()` has an optional `.returns()` method which can be used to specify which of the previous arguments should be returned (including children of those arguments). `.returns()` must always be the last function in the `Graph#subgraph()` chain:
 
 ```javascript
-graph.add('userId-updateEmail', graph.subgraph)
-  // takes user and email as inputs but doesn't send them to graph.subgraph
-  .args('!user', '!email')
-  // finally, pipe the results of user-setEmail into user-save and return the result to graph.subgraph
-  .builds('user-save')
-    .using('user-setEmail')
+graph.add('userId-updateEmail')
+  // takes user and email as inputs
+  .args('user', 'email')
   // set the email value on the user
-  .builds('!user-setEmail')
+  .builds('user-setEmail')
     .using('args.email')
     // validate the user has a valid e-mail address
     .modifiers('user-validateEmail')
+  // saves the user, once the email has been set
+  .builds('user-save')
+    .using('user-setEmail')
+  // returns the userId of the saved user
   .returns('user-save.userId')
 ```
 
