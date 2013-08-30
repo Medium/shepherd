@@ -135,17 +135,7 @@ graph.add('throws-callback', function () { next(new Error('NOOOO')) })
 ```
 
 ### Literals
-Non-string / non-array literals may also be added as graph nodes by passing them directly to .add():
-
-```javascript
-// add a number as a literal
-graph.add('secret-ofLifeTheUniverseAndEverything', 42)
-
-// add an object as a literal
-graph.add('object-test', {isTest: true})
-```
-
-String literals must be passed in through a special wrapper object or through the utility method `Graph#literal`:
+Literals can be added to the graph using a special wrapper object or through the utility method `Graph#literal`:
 
 ```javascript
 // add a string as a literal with a wrapper object
@@ -153,6 +143,16 @@ graph.add('name-fromObject', {_literal: 'Jeremy'})
 
 // add a string as a literal with the utility method
 graph.add('name-fromFunction', graph.literal('Jeremy'))
+```
+
+If a literal is guaranteed not be a string, and not to be undefined, it may be added directly without using `Graph#literal`.
+
+```javascript
+// add a number as a literal
+graph.add('secret-ofLifeTheUniverseAndEverything', 42)
+
+// add an object as a literal. this is safe because this object can never be undefined.
+graph.add('object-test', {isTest: true})
 ```
 
 Strings require a special case due to the cloning behavior built into **shepherd**. If you wish to clone a node into a node with a new name, call .add() with the old name and the new name:
