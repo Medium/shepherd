@@ -118,23 +118,51 @@ builder.add(function testDifferentScopePrivate(test) {
   test.done()
 })
 
-// private nodes should not be able to be accessed from builder .builds()
-builder.add(function testPrivateBuilds(test) {
+// private nodes should be able to be accessed from builder .builds() if the scopes are the same
+builder.add(function testSameScopePrivateBuilds(test) {
   var name = 'Jeremy'
 
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
-  try {
-    this.graph.newBuilder()
+
+  return this.graph.newBuilder()
+    .builds('name-fromLiteral_')
+    .run({}, function (err, data) {
+      test.equal(data['name-fromLiteral_'], name, "Name should be returned")
+    })
+})
+
+
+// private nodes should not be able to be accessed from builder .builds() if the scopes are different
+builder.add(function testDifferentScopePrivateBuilds(test) {
+  var name = 'Jeremy'
+
+  this.graph.setScope('bliga')
+
+  this.graph.add('name-fromLiteral_', this.graph.literal(name))
+
+  this.graph.setScope('kank')
+
+  // We do the builds() out here outside the try because the error is not supposed
+  // to test that the error does not happen until the compile.
+  var builder = this.graph.newBuilder()
       .builds('name-fromLiteral_')
-      .compile([])
-    test.fail("Should not be able to access private nodes from builders")
+
+  try {
+    builder.compile([])
+    test.fail("Should not be able to access private nodes from builders if the scopes are different")
   } catch (e) {
-    test.ok("Should not be able to access private nodes from builders")
+    var index = e.message.indexOf("Unable to access node 'name-fromLiteral_' in scope 'bliga'")
+    test.equal(index, 0, "Should not be able to access private nodes from builders if the scopes are different")
   }
   test.done()
 })
 
-// private nodes should not be able to be accessed from builder .using()
+// private nodes should not be able to be accessed from builder .using() statements.
+//
+// TODO(sho): We should change shepherd to allow using private nodes in a using statement as long
+// as the scope is the same as the builder. However, it turns out to be non-trivial to implement
+// this, so I am leaving that task for another day.
+//
 builder.add(function testPrivateUsing(test) {
   var name = 'Jeremy'
 
@@ -149,9 +177,9 @@ builder.add(function testPrivateUsing(test) {
       .builds('str-toUpper')
         .using({str: 'name-fromLiteral_'})
       .compile([])
-    test.fail("Should not be able to access private nodes from builders")
+    test.fail("Should not be able to access private nodes from builders in a using() statement")
   } catch (e) {
-    test.ok("Should not be able to access private nodes from builders")
+    test.equal(e.message, "Private nodes may not be called from builders")
   }
   test.done()
 })
