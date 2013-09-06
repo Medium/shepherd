@@ -1,7 +1,7 @@
 {
   "name": "shepherd",
   "description": "asynchronous dependency injection for node.js",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "homepage": "https://github.com/Obvious/shepherd",
   "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)",
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "nodeunit": "0.7.4",
-    "nodeunitq": "0.0.2"
+    "nodeunitq": "0.0.3"
   },
   "scripts": {
     "test": "./node_modules/nodeunit/bin/nodeunit test"
