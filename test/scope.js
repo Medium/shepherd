@@ -113,45 +113,48 @@ builder.add(function testDifferentScopePrivate(test) {
       .compile([])
     test.fail("Should not be able to access private nodes from different scopes")
   } catch (e) {
-    test.ok("Should not be able to access private nodes from different scopes")
+    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1'" +
+          " from node 'name-upper' in scope 'scope3'"
+    if (message !== String(e.message)) {
+      throw e
+    }
   }
   test.done()
 })
 
-// private nodes should not be able to be accessed from builder .builds()
-builder.add(function testPrivateBuilds(test) {
+builder.add(function testDifferentScopePrivateBuilder(test) {
   var name = 'Jeremy'
 
+  this.graph.setScope("scope1")
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
+
+  this.graph.setScope("scope2")
+
   try {
     this.graph.newBuilder()
       .builds('name-fromLiteral_')
       .compile([])
-    test.fail("Should not be able to access private nodes from builders")
+    test.fail("Should not be able to access private nodes from different scopes")
   } catch (e) {
-    test.ok("Should not be able to access private nodes from builders")
+    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
+          "from node 'builderOutput-anonymousBuilder1_1' in scope 'scope2'"
+    if (message !== String(e.message)) {
+      throw e
+    }
   }
   test.done()
 })
 
-// private nodes should not be able to be accessed from builder .using()
-builder.add(function testPrivateUsing(test) {
+builder.add(function testSameScopePrivateBuilder(test) {
   var name = 'Jeremy'
 
-  this.graph.add('str-toUpper', function (str) {
-    return str.toUpperCase()
-  }, ['str'])
-
+  this.graph.setScope("scope1")
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
-  try {
-    this.graph.newBuilder()
-      .builds('str-toUpper')
-        .using({str: 'name-fromLiteral_'})
-      .compile([])
-    test.fail("Should not be able to access private nodes from builders")
-  } catch (e) {
-    test.ok("Should not be able to access private nodes from builders")
-  }
-  test.done()
+  return this.graph.newBuilder()
+      .builds('name-fromLiteral_')
+      .run()
+      .then(function (data) {
+        test.equal(name, data['name-fromLiteral_'])
+      })
 })
