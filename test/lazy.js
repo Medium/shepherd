@@ -75,3 +75,60 @@ builder.add(function testConditionalNode(test) {
         test.deepEqual([], order)
       })
 })
+
+builder.add(function testLazyNodeWithUsing(test) {
+  graph.addLazy('threeLazy')
+      .builds('add').using({a: 'one'}, {b: 'two'})
+
+  return graph.newBuilder()
+      .builds('threeLazy')
+      .run()
+      .then(function (data) {
+        test.deepEqual([], order)
+        return data['threeLazy']()
+      })
+      .then(function (result) {
+        test.equal(3, result)
+        test.deepEqual([1, 2, 'add(1,2)'], order)
+      })
+})
+
+builder.add(function testLazyNodeWithCompileTimeArguments(test) {
+  graph.addLazy('addLazy', function (a, b) {
+        order.push('add(' + a + ',' + b + ')')
+        return a + b
+      }, ['a', 'b'])
+
+  return graph.newBuilder()
+      .builds('addLazy').using({a: 'one'}, {b: 'two'})
+      .run()
+      .then(function (data) {
+        test.deepEqual([1, 2], order)
+        return data['addLazy']()
+      })
+      .then(function (result) {
+        test.equal(3, result)
+        test.deepEqual([1, 2, 'add(1,2)'], order)
+      })
+})
+
+builder.add(function testLazyNodeWithLateBoundArguments(test) {
+  graph.addLazy('addLazy')
+      .args('a', 'b')
+      .fn(function (a, b) {
+        order.push('add(' + a + ',' + b + ')')
+        return a + b
+      })
+
+  return graph.newBuilder()
+      .builds('addLazy').using({a: 'one'}, {b: 'two'})
+      .run()
+      .then(function (data) {
+        test.deepEqual([1, 2], order)
+        return data['addLazy']()
+      })
+      .then(function (result) {
+        test.equal(3, result)
+        test.deepEqual([1, 2, 'add(1,2)'], order)
+      })
+})
