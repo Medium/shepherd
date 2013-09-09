@@ -158,3 +158,58 @@ builder.add(function testSameScopePrivateBuilder(test) {
         test.equal(name, data['name-fromLiteral_'])
       })
 })
+
+builder.add(function testDifferentScopePrivateUsing(test) {
+  var name = 'Jeremy'
+
+  this.graph.setScope("scope1")
+  this.graph.add('name-fromLiteral_', this.graph.literal(name))
+  this.graph.add('name-upper', function (name) {
+    return name.toUpperCase()
+  }, ['name'])
+
+  this.graph.setScope("scope2")
+
+  this.graph.add('name-upperFromLiteral')
+      .builds('name-upper').using('name-fromLiteral_')
+
+  try {
+    this.graph.newBuilder()
+      .builds('name-upperFromLiteral')
+      .compile([])
+    test.fail("Should not be able to access private nodes from different scopes")
+  } catch (e) {
+    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
+          "from node 'name-upperFromLiteral' in scope 'scope2'"
+    if (message !== String(e.message)) {
+      throw e
+    }
+  }
+  test.done()
+})
+
+builder.add(function testDifferentScopePrivateUsingInBuilder(test) {
+  var name = 'Jeremy'
+
+  this.graph.setScope("scope1")
+  this.graph.add('name-fromLiteral_', this.graph.literal(name))
+  this.graph.add('name-upper', function (name) {
+    return name.toUpperCase()
+  }, ['name'])
+
+  this.graph.setScope("scope2")
+
+  try {
+    this.graph.newBuilder()
+      .builds('name-upper').using('name-fromLiteral_')
+      .compile([])
+    test.fail("Should not be able to access private nodes from different scopes")
+  } catch (e) {
+    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
+          "from node 'builderOutput-anonymousBuilder1_1' in scope 'scope2'"
+    if (message !== String(e.message)) {
+      throw e
+    }
+  }
+  test.done()
+})
