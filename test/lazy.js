@@ -27,6 +27,10 @@ exports.setUp = function (done) {
   graph.add('two').builds('num').using({n: 2})
   graph.add('three').builds('add').using({a: 'one'}, {b: 'two'})
 
+  graph.add('throw').fn(function () {
+    throw new Error('thrown')
+  })
+
   done()
 }
 
@@ -133,7 +137,6 @@ builder.add(function testLazyNodeWithLateBoundArguments(test) {
       })
 })
 
-
 builder.add(function testLazyNodeWithDiamondDependencies(test) {
   graph.addLazy('threeLazy').builds('three')
 
@@ -154,5 +157,31 @@ builder.add(function testLazyNodeWithDiamondDependencies(test) {
       .run()
       .then(function (data) {
         test.equal(6, data['six'])
+      })
+})
+
+builder.add(function testLazyNodeWithError(test) {
+  graph.addLazy('lazy-throw').builds('throw')
+
+  return graph.newBuilder()
+      .builds('lazy-throw')
+      .run()
+      .then(function (data) {
+        return data['lazy-throw']()
+      })
+      .then(function () {
+        test.fail('Expected error thrown by the thunk')
+      })
+      .fail(function (err) {
+        if (err.message != 'thrown') {
+          throw err
+        }
+        test.deepEqual([
+          'throw',
+          'lazy-throw__sync',
+          'lazy-throw__eval',
+          'lazy-throw',
+          'builderOutput-anonymousBuilder1_3'
+        ], err.graphInfo.failureNodeChain)
       })
 })
