@@ -132,3 +132,27 @@ builder.add(function testLazyNodeWithLateBoundArguments(test) {
         test.deepEqual([1, 2, 'add(1,2)'], order)
       })
 })
+
+
+builder.add(function testLazyNodeWithDiamondDependencies(test) {
+  graph.addLazy('threeLazy').builds('three')
+
+  graph.add('six')
+    .builds('threeLazy')
+    .builds('one')
+    .builds('two')
+    .fn(function (threeLazy, one, two) {
+      test.deepEqual([1, 2], order)
+      return threeLazy().then(function (three) {
+        test.deepEqual([1, 2, 'add(1,2)'], order)
+        return three + two + one
+      })
+    })
+
+  return graph.newBuilder()
+      .builds('six')
+      .run()
+      .then(function (data) {
+        test.equal(6, data['six'])
+      })
+})
