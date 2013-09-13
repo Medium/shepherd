@@ -289,3 +289,78 @@ builder.add(function testCreateInjectorBadParams(test) {
 
   test.done()
 })
+
+builder.add(function testInject(test) {
+  var nums = []
+  graph.add('num', function (n) {
+    nums.push(n)
+    return n
+  }, ['n'])
+
+  graph.add('arrayOfNums')
+    .builds({'!five': 'num'}).using({n: 5})
+    .builds({'one': 'num'}).using({n: 1})
+    .builds({'two-fromNum': 'num'}).using({n: 2})
+    .builds({'four': 'num'}).using({n: 4})
+    .builds({'three': 'num'}).using({n: 3})
+    .inject(function (three, one, two) {
+      test.equal(3, three)
+      test.equal(2, two)
+      test.equal(1, one)
+      test.equal(4, arguments[3])
+      test.ok(nums.indexOf(4) != -1, '4 should have been created')
+      test.ok(nums.indexOf(5) != -1, '5 should have been created')
+      return [one, two, three]
+    })
+
+  return graph.newBuilder().builds('arrayOfNums').run().then(function (data) {
+    test.deepEqual([1, 2, 3], data['arrayOfNums'])
+  })
+})
+
+builder.add(function testInjectBadParams(test) {
+  graph.add('num', function (n) {
+    return n
+  }, ['n'])
+
+  try {
+    graph.add('arrayOfNums')
+        .builds('one')
+        .inject(function (two) {})
+    test.fail('Expected error')
+  } catch (e) {
+    if (e.message != 'No injector found for parameter: two') throw e
+  }
+
+  test.done()
+})
+
+builder.add(function testInjectArgs(test) {
+  var nums = []
+  graph.add('num', function (n) {
+    nums.push(n)
+    return n
+  }, ['n'])
+
+  graph.add('arrayOfNums').args('?five', 'two', 'one')
+    .builds({'four': 'num'}).using({n: 4})
+    .builds({'three': 'num'}).using({n: 3})
+    .inject(function (three, one, two) {
+      test.equal(3, three)
+      test.equal(2, two)
+      test.equal(1, one)
+      test.equal(4, arguments[3])
+      test.ok(nums.indexOf(4) != -1, '4 should have been created')
+      test.ok(nums.indexOf(5) != -1, '5 should have been created')
+      return [one, two, three]
+    })
+
+  return graph.newBuilder()
+      .builds({'?five': 'num'}).using({n: 5})
+      .builds({'?one': 'num'}).using({n: 1})
+      .builds({'?two': 'num'}).using({n: 2})
+      .builds('arrayOfNums').using('five', 'one', 'two')
+      .run().then(function (data) {
+    test.deepEqual([1, 2, 3], data['arrayOfNums'])
+  })
+})
