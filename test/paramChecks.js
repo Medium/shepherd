@@ -57,9 +57,6 @@ builder.add(function testCorrectParamsChainedSucceeds(test) {
   return this.graph.newBuilder()
     .builds('funXY')
     .run({x: 1, y: 2})
-    .fail(function (err) {
-      test.equal(err, undefined, "Correct parameters shouldn't fail.")
-    })
     .then(function (results) {
       test.deepEqual(results['funXY'], [1, 2],
           'Correct parameters should return properly')
@@ -77,9 +74,6 @@ builder.add(function testShepherdInterpretedParamsUsingSucceeds(test) {
       .using('params.y')
       .using('x-byFoo')
     .run()
-    .fail(function (err) {
-      test.equal(err, undefined, "Correct parameters shouldn't fail.")
-    })
     .then(function (results) {
       test.deepEqual(results['funXY'], [1, 2],
           'Correct parameters should return properly')
