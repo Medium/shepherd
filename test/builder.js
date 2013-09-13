@@ -364,3 +364,28 @@ builder.add(function testInjectArgs(test) {
     test.deepEqual([1, 2, 3], data['arrayOfNums'])
   })
 })
+
+
+builder.add(function testInjectProps(test) {
+  graph.add('config', function () {
+    return {
+      base: 'base',
+      secret: 'secret',
+      private_: 'private'
+    }
+  })
+
+  graph.add('array')
+    .builds('config.secret')
+    .builds('config.private_')
+    .builds('config.base')
+    .inject(function (base, private_, secret) {
+      return [base, private_, secret]
+    })
+
+  return graph.newBuilder()
+      .builds('array')
+      .run().then(function (data) {
+    test.deepEqual(['base', 'private', 'secret'], data['array'])
+  })
+})
