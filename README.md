@@ -111,6 +111,46 @@ graph.newBuilder()
     .using('userObj.name') // this automatically figures out that it should be passed as 'name'
 ```
 
+### Arguments to nodes
+
+By default, all `args` and `builds` are passed to the handler function in the
+order they're written.
+
+```javascript
+graph.add('str-formatTimestamp')
+  .args('timestamp')
+  .builds('formatter-forTimestamp')
+  .fn(function (timestamp, formatter) {
+    return formatter.format(timestamp)
+  })
+```
+
+To change the order, you can use `inject(callback)` instead of
+`fn(callback)`. `inject` will try to read the arguments of the function literal,
+and match up the named arguments with the function arguments.
+
+```javascript
+graph.add('str-formatTimestamp')
+  .args('timestamp')
+  .builds('formatter-forTimestamp')
+  .inject(function (formatter, timestamp) {
+    return formatter.format(timestamp)
+  })
+```
+
+`inject` will throw errors if it can't find a match for the function literal arguments.
+
+```javascript
+graph.add('str-formatTimestamp')
+  .args('timestamp')
+  .builds('formatter-forTimestamp')
+  .inject(function (formater, timestomp) {}) // Throws errors for missing arguments
+```
+
+`inject` may not work with functions built with higher-order primitives like
+Function.prototype.bind, because it won't be able to figure out the argument
+list.
+
 ### Returning and errors
 `Graph` nodes may choose to return or throw synchronously or they may return or throw asynchronously through a promise (we currently use the node module `kew` which is a lighter implementation of much `Q` functionality) or via a node-style callback passed in as the last argument:
 
@@ -374,11 +414,39 @@ builder
     .modifiers('str-toUpper', {'str-toLower': 'str'}, toUpper)
 ```
 
+### Lazy nodes
+
+Shepherd has a "lazy" primitive that allows you to delay execution of a subgraph
+until run-time.
+
+Nodes defined with `graph.addLazy` will return immediately with a function. The
+function, when called, will begin evaluating the subgraph and return a promise
+with its result.
+
+```javascript
+graph.addLazy('lazyNum-one')
+  .fn(function () { 
+    console.log('evaluating oneLazyNode')
+    return 1
+  })
+
+graph.add('num-one')
+  .builds('lazyNum-one')
+  .inject(function (lazyNum) {
+    // Until lazyNode is called, 'evaluating oneLazyNode' should not appear in
+    // the console.
+    return lazyNum().fail(function (e) {
+      throw new Error('failed evaluating oneLazyNode: ' + e)
+    })
+  })
+```
+
+
 Running the Builder
 -------
 Once your `Graph` has been constructed and your `Builder` has been built, you can actually do something with it! `Builder#run()` accepts an input object, which will add new nodes to the graph (data-only) at run-time, and an optional callback:
 
-```
+```javascript
 // node-style callback can be passed in as the second argument
 builder.run({name: "Jeremy", currentTimestamp: Date.now()}, function (err, data) {
   // you should have either an error or data at this point
