@@ -185,3 +185,28 @@ builder.add(function testLazyNodeWithError(test) {
         ], err.graphInfo.failureNodeChain)
       })
 })
+
+builder.add(function testLazyNodeWithRuntimeArgs(test) {
+  graph.addLazy('runtimeFn')
+     .builds('lazyargs.1')
+     .builds('lazyargs.0')
+     .fn(function (x, y) {
+       order.push(x)
+       order.push(y)
+       return x + y
+     })
+
+  return graph.newBuilder()
+     .builds('runtimeFn')
+     .run()
+     .then(function (data) {
+       test.deepEqual([], order)
+
+       var fn = data['runtimeFn']
+       return fn(2, 1)
+     })
+     .then(function (result) {
+       test.equal(3, result)
+       test.deepEqual([1, 2], order)
+     })
+})
