@@ -185,3 +185,39 @@ builder.add(function testLazyNodeWithError(test) {
         ], err.graphInfo.failureNodeChain)
       })
 })
+
+builder.add(function testLazyNodeWithRuntimeArgs(test) {
+  graph.addLazy('runtimeFn')
+     .builds('lazyargs.1')
+     .builds('lazyargs.0')
+     .fn(function (x, y) {
+       order.push(x)
+       order.push(y)
+       return x + y
+     })
+
+  var fn
+  return graph.newBuilder()
+     .builds('runtimeFn')
+     .run()
+     .then(function (data) {
+       test.deepEqual([], order)
+
+       fn = data['runtimeFn']
+       return fn(2, 1)
+     })
+     .then(function (result) {
+       test.equal(3, result)
+       test.deepEqual([1, 2], order)
+
+       return fn(3, 4)
+     })
+     .then(function (result) {
+       test.fail('Expected an error when function evaluated twice')
+     })
+     .fail(function (e) {
+       if (e.message != 'Unable to resolve or reject the same promise twice') {
+         throw e
+       }
+     })
+})
