@@ -196,17 +196,28 @@ builder.add(function testLazyNodeWithRuntimeArgs(test) {
        return x + y
      })
 
+  var fn
   return graph.newBuilder()
      .builds('runtimeFn')
      .run()
      .then(function (data) {
        test.deepEqual([], order)
 
-       var fn = data['runtimeFn']
+       fn = data['runtimeFn']
        return fn(2, 1)
      })
      .then(function (result) {
        test.equal(3, result)
        test.deepEqual([1, 2], order)
+
+       return fn(3, 4)
+     })
+     .then(function (result) {
+       test.fail('Expected an error when function evaluated twice')
+     })
+     .fail(function (e) {
+       if (e.message != 'Unable to resolve or reject the same promise twice') {
+         throw e
+       }
      })
 })
