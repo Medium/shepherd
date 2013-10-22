@@ -389,3 +389,25 @@ builder.add(function testInjectProps(test) {
     test.deepEqual(['base', 'private', 'secret'], data['array'])
   })
 })
+
+builder.add(function testUncompiledNodes(test) {
+  graph.add('one').fn(function () { return 1 })
+
+  // Make sure this node is never compiled.
+  graph.add('two').builds('non-existent-node-impossible-to-compile')
+
+  return graph.newBuilder()
+      .builds('one')
+      .run().then(function (data) {
+    test.equal(1, data['one'])
+
+    return graph.newBuilder().builds('two').run()
+  }).then(function (e) {
+    test.fail('Expected error')
+  }).fail(function (e) {
+    if (e.message.indexOf('non-existent-node-impossible-to-compile') === -1) {
+      throw e
+    }
+    return false
+  })
+})
