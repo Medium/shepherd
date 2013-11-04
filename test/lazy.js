@@ -221,3 +221,68 @@ builder.add(function testLazyNodeWithRuntimeArgs(test) {
        }
      })
 })
+
+builder.add(function testLazyNodeTwice(test) {
+  graph.addLazy('lazyFn')
+      .args('n')
+      .builds('num').using('args.n')
+
+  return graph.newBuilder()
+      .builds({'one': 'lazyFn'}).using({n: 1})
+      .builds({'two': 'lazyFn'}).using({n: 2})
+      .run()
+      .then(function (data) {
+        return data['two']()
+      })
+      .then(function (result) {
+        test.equal(2, result)
+        test.deepEqual([2], order)
+
+        return graph.newBuilder()
+            .builds({'three': 'lazyFn'}).using({n: 3})
+            .builds({'four': 'lazyFn'}).using({n: 4})
+            .run()
+      })
+      .then(function (data) {
+        return data['three']()
+      })
+      .then(function (result) {
+        test.equal(3, result)
+        test.deepEqual([2, 3], order)
+      })
+})
+
+builder.add(function testTwoLazyNodes(test) {
+  graph.addLazy('oneLazy')
+      .builds('num').using({n: 1})
+  graph.addLazy('twoLazy')
+      .builds('num').using({n: 2})
+  graph.addLazy('threeLazy')
+      .builds('num').using({n: 3})
+  graph.addLazy('fourLazy')
+      .builds('num').using({n: 4})
+
+  return graph.newBuilder()
+      .builds('oneLazy')
+      .builds('twoLazy')
+      .run()
+      .then(function (data) {
+        return data['twoLazy']()
+      })
+      .then(function (result) {
+        test.equal(2, result)
+        test.deepEqual([2], order)
+
+        return graph.newBuilder()
+            .builds('threeLazy')
+            .builds('fourLazy')
+            .run()
+      })
+      .then(function (data) {
+        return data['threeLazy']()
+      })
+      .then(function (result) {
+        test.equal(3, result)
+        test.deepEqual([2, 3], order)
+      })
+})
