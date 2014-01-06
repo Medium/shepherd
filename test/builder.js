@@ -411,3 +411,20 @@ builder.add(function testUncompiledNodes(test) {
     return false
   })
 })
+
+
+
+builder.add(function testBuilderInputUnmodified(test) {
+  this.graph.add('upper', function (str) {
+    return str.toUpperCase()
+  }, ['str'])
+
+  var inputs = {str: 'nick'}
+  return this.graph.newBuilder()
+    .builds('upper')
+    .run(inputs)
+    .then(function (result) {
+      test.deepEqual(['str'], Object.keys(inputs))
+      test.deepEqual(['upper'], Object.keys(result).sort())
+    })
+})
