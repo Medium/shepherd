@@ -290,6 +290,21 @@ builder.add(function testCreateInjectorBadParams(test) {
   test.done()
 })
 
+builder.add(function testCreateInjectorWithPlaceholders(test) {
+  graph.add('num', function (n) {
+    return n
+  }, ['n'])
+
+  var builder = graph.newBuilder()
+    .builds({'one': 'num'}).using({n: 1})
+    .builds({'two-fromNum': 'num'}).using({n: 2})
+    .builds({'three': 'num'}).using({n: 3})
+
+  var handler = builder.mapOutputKeysToArgs(function (three, one, two, four, five) {}, ['four', 'five'])
+
+  test.done()
+})
+
 builder.add(function testInject(test) {
   var nums = []
   graph.add('num', function (n) {
