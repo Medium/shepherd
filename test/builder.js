@@ -443,3 +443,23 @@ builder.add(function testBuilderInputUnmodified(test) {
       test.deepEqual(['upper'], Object.keys(result).sort())
     })
 })
+
+builder.add(function testContructor(test) {
+  function MyType(a, b) {
+    this.a = a
+    this.b = b
+  }
+
+  graph.add('myType')
+    .args('a', 'b')
+    .ctor(MyType)
+
+  return graph.newBuilder()
+      .builds('myType').using({'a': graph.literal(1)}, {'b': graph.literal(2)})
+      .run().then(function (data) {
+    var myType = data['myType']
+    test.ok(myType instanceof MyType)
+    test.equal(1, myType.a)
+    test.equal(2, myType.b)
+  })
+})
