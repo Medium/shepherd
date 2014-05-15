@@ -13,7 +13,7 @@ exports.setUp = function (done) {
 // test that profiling returns profiling data
 builder.add(function testProfiling(test) {
   function testDelay(delayMs) {
-    return Q.delay(delayMs, true)
+    return Q.delay(true, delayMs)
   }
 
   this.graph.add('response-delayed', testDelay, ['delayMs'])
@@ -55,7 +55,7 @@ builder.add(function testProfiling(test) {
 // test that profiling doesn't return a result (most of the time) when set to 0.00001
 builder.add(function testMinimalProfiling(test) {
   function testDelay(delayMs) {
-    return Q.delay(delayMs, true)
+    return Q.delay(true, delayMs)
   }
 
   this.graph.add('response-delayed', testDelay, ['delayMs'])
