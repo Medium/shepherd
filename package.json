@@ -1,7 +1,7 @@
 {
   "name": "shepherd",
   "description": "asynchronous dependency injection for node.js",
-  "version": "2.2.5",
+  "version": "2.3.0",
   "homepage": "https://github.com/Obvious/shepherd",
   "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "closure-npc": "0.1.2",
     "nodeunit": "0.7.4",
-    "nodeunitq": "0.0.3"
+    "nodeunitq": "0.1.1"
   },
   "scripts": {
     "test": "./node_modules/nodeunit/bin/nodeunit test && ./node_modules/.bin/closure-npc"
