@@ -173,3 +173,32 @@ builder.add(function testGoodDependenciesProperties(test) {
     test.equal(data['propertySingleton'], 2)
   })
 })
+
+
+builder.add(function testImportantNodesBlockingSingleton(test) {
+  var log = []
+  graph.add('counterSingleton').fn(function () {
+    log.push('counterSingleton')
+    return 1
+  })
+  .cacheSingleton()
+
+  var counter = 0
+  graph.add('counterImportant').fn(function () {
+    log.push('counterImportant')
+    return 1
+  })
+
+  graph.add('callBoth')
+    .builds('!counterImportant')
+    .builds('counterSingleton')
+
+  return graph.newBuilder()
+    .builds('!counterImportant')
+    .builds('counterSingleton')
+    .builds('callBoth')
+  .run()
+  .then(function () {
+    test.deepEqual(['counterImportant', 'counterSingleton'], log)
+  })
+})
