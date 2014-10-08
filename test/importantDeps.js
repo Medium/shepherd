@@ -430,6 +430,81 @@ builder.add(function testImportantDescendant2(test) {
     })
 })
 
+
+builder.add(function testImportantLazyInner(test) {
+  var warned = false
+  console.warn = function () { warned = true }
+
+  graph.add('important', function () {
+    throw new Error('Sadness')
+  })
+
+  var eagerRan = false
+  graph.add('eager', function () {
+    eagerRan = true
+    return 'eager'
+  })
+
+  graph.addLazy('addLazy')
+    .builds('eager')
+    .builds('!important')
+
+  var lazyGetsEvaluated = false
+  return graph.newBuilder('descendant')
+    .builds('addLazy')
+    .run()
+    .then(function (data) {
+      lazyGetsEvaluated = true
+
+      test.equal(false, eagerRan)
+      test.equal('function', typeof data['addLazy'])
+      return data['addLazy']()
+    })
+    .fail(function (err) {
+      test.equal(false, eagerRan)
+      test.equal(false, warned)
+      test.equal(true, lazyGetsEvaluated)
+      test.equal('Sadness', err.message)
+    })
+})
+
+builder.add(function testImportantLazyOuter(test) {
+  var warned = false
+  console.warn = function () { warned = true }
+
+  graph.add('important', function () {
+    throw new Error('Sadness')
+  })
+
+  var eagerRan = false
+  graph.add('eager', function () {
+    eagerRan = true
+    return 'eager'
+  })
+
+  graph.addLazy('addLazy')
+    .builds('eager')
+
+  var lazyGetsEvaluated = false
+  return graph.newBuilder('descendant')
+    .builds('addLazy')
+    .builds('!important')
+    .run()
+    .then(function (data) {
+      lazyGetsEvaluated = true
+
+      test.equal(false, eagerRan)
+      test.equal('function', typeof data['addLazy'])
+      return data['addLazy']()
+    })
+    .fail(function (err) {
+      test.equal(false, eagerRan)
+      test.equal(false, warned)
+      test.equal(false, lazyGetsEvaluated)
+      test.equal('Sadness', err.message)
+    })
+})
+
 builder.add(function testImportantCycle(test) {
   // Try to create a cycle between one and two
   var log = ''
