@@ -1,6 +1,8 @@
 shepherd: asynchronous dependency injection and more!
 ==================================
 
+[![Build Status](https://travis-ci.org/Medium/shepherd.svg)](https://travis-ci.org/Medium/shepherd)
+
 **Shepherd** is a graph-based dependency resolution system, designed to simplify request pipelines that have multiple asynchronous steps. Shepherd makes it easy to split code into fine-grained, composable units.
 
 For example, a feed may draw on multiple sources of data which need to be fetched in parallel (and each may have multiple processing steps), but they may have some common dependencies. With **Shepherd**, you would break each step into a single function, which would return immediately or through a promise, and specify any direct dependencies. Once all of the components are created atomically, the `Graph` will handle when each node runs and provide you with the processed output once all steps have completed.
