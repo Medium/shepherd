@@ -59,3 +59,23 @@ builder.add(function testResponseViaPromise(test) {
       test.equal(result.returns, response, 'Response should be returned through promise')
     })
 })
+
+// Make sure any A+-compliant promises are handled correctly.
+builder.add(function testAplusCompliant(test) {
+  this.graph.add('returns', function () {
+    // Return a minimally viable promise, to ensure we don't accidentally try to
+    // call methods specific to one promise library or another.
+    return {
+      then: function (callback) {
+        callback('A+ work!')
+      }
+    }
+  })
+
+  return this.graph.newBuilder()
+    .builds('returns')
+    .run({})
+    .then(function (result) {
+      test.equal('A+ work!', result.returns)
+    })
+})
