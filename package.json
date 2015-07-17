@@ -1,7 +1,7 @@
 {
   "name": "shepherd",
   "description": "asynchronous dependency injection for node.js",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "homepage": "https://github.com/Medium/shepherd",
   "authors": [
     "Jeremy Stanley <jeremy@obvious.com> (https://github.com/azulus)",
