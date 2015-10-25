@@ -304,3 +304,32 @@ builder.add(function testBuilderObjectUpcast(test) {
       test.equal(data['user-fromNameAndAge'].age, age, "Age should be returned")
     })
 })
+
+// test .using() on a run input
+builder.add(function testUsingRunInput(test) {
+  var self = this
+  this.graph.add('context')
+  .builds('contextId')
+  .fn(function (contextId) {
+    return {contextId: contextId}
+  })
+
+  this.graph.add('stats')
+    .builds('context').using({contextId: this.graph.literal(0xdeadbeef)})
+  .fn(function (context) {
+    return {context: context}
+  })
+
+  return self.graph.newBuilder()
+    .builds('stats')
+    .builds('context')
+    .run({contextId: 1})
+  .then(function (result) {
+    test.ok(false, 'Expected error')
+  })
+  .fail(function (e) {
+    var message = 'Bad override of input contextId at node ' +
+        'BUILDER->builderOutput-anonymousBuilder1_2->context-peerGroup2'
+    if (e.message != message) throw e
+  })
+})
