@@ -3,6 +3,7 @@ var Q = require('kew')
 var nodeunitq = require('nodeunitq')
 var builder = new nodeunitq.Builder(exports)
 var shepherd = require ('../lib/shepherd')
+var semver = require('semver')
 var graph
 
 // set up a graph for testing
@@ -470,6 +471,30 @@ builder.add(function testContructorInjects(test) {
     this.a = a
     this.b = b
   }
+
+  graph.add('myType')
+    .args('b', 'c', 'a')
+    .ctor(MyType)
+
+  return graph.newBuilder()
+      .builds('myType')
+        .using({'a': graph.literal(1)}, {'b': graph.literal(2)}, {'c': graph.literal(3)})
+      .run()
+  .then(function (data) {
+    var myType = data['myType']
+    test.ok(myType instanceof MyType)
+    test.equal(1, myType.a)
+    test.equal(2, myType.b)
+  })
+})
+
+
+builder.add(function testContructorInjectsNativeCtor(test) {
+  'use strict'
+
+  if (semver.lt(process.version, 'v4.0.0')) return test.done()
+
+  var MyType = require('./testdata/MyType')
 
   graph.add('myType')
     .args('b', 'c', 'a')
