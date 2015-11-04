@@ -1,0 +1,26 @@
+{
+    "rules": {
+        "no-console": 0,
+        "quotes": [
+            2,
+            "single"
+        ],
+        "linebreak-style": [
+            2,
+            "unix"
+        ],
+        "semi": [
+            2,
+            "never"
+        ],
+        "no-unused-vars": [
+            2,
+            {"args": "after-used", "argsIgnorePattern": "^var_args$"}
+        ],
+        "no-constant-condition": [0]
+    },
+    "env": {
+        "node": true
+    },
+    "extends": "eslint:recommended"
+}

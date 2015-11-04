@@ -13,15 +13,15 @@ exports.setUp = function (done) {
 builder.add(function testSameScopePublic(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral', this.graph.literal(name))
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
   this.graph.add('str-toUpper', function (str) {
     return str.toUpperCase()
   }, ['str'])
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-upper', this.graph.subgraph)
     .builds('name-fromLiteral')
       .modifiers({'str-toUpper': 'str'})
@@ -29,10 +29,10 @@ builder.add(function testSameScopePublic(test) {
   return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
     .then(function (data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
 })
 
@@ -40,15 +40,15 @@ builder.add(function testSameScopePublic(test) {
 builder.add(function testSameScopePrivate(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
   this.graph.add('str-toUpper', function (str) {
     return str.toUpperCase()
   }, ['str'])
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-upper', this.graph.subgraph)
     .builds('name-fromLiteral_')
       .modifiers({'str-toUpper': 'str'})
@@ -56,10 +56,10 @@ builder.add(function testSameScopePrivate(test) {
   return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
     .then(function (data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
 })
 
@@ -67,15 +67,15 @@ builder.add(function testSameScopePrivate(test) {
 builder.add(function testDifferentScopePublic(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral', this.graph.literal(name))
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
   this.graph.add('str-toUpper', function (str) {
     return str.toUpperCase()
   }, ['str'])
 
-  this.graph.setScope("scope3")
+  this.graph.setScope('scope3')
   this.graph.add('name-upper', this.graph.subgraph)
     .builds('name-fromLiteral')
       .modifiers({'str-toUpper': 'str'})
@@ -83,10 +83,10 @@ builder.add(function testDifferentScopePublic(test) {
   return this.graph.newBuilder()
     .builds('name-upper')
     .run({}, function (err, data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
     .then(function (data) {
-      test.equal(data['name-upper'], name.toUpperCase(), "Name should be upper-cased")
+      test.equal(data['name-upper'], name.toUpperCase(), 'Name should be upper-cased')
     })
 })
 
@@ -94,15 +94,15 @@ builder.add(function testDifferentScopePublic(test) {
 builder.add(function testDifferentScopePrivate(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
   this.graph.add('str-toUpper', function (str) {
     return str.toUpperCase()
   }, ['str'])
 
-  this.graph.setScope("scope3")
+  this.graph.setScope('scope3')
   this.graph.add('name-upper', this.graph.subgraph)
     .builds('name-fromLiteral_')
       .modifiers({'str-toUpper': 'str'})
@@ -111,10 +111,10 @@ builder.add(function testDifferentScopePrivate(test) {
     this.graph.newBuilder()
       .builds('name-upper')
       .compile([])
-    test.fail("Should not be able to access private nodes from different scopes")
+    test.fail('Should not be able to access private nodes from different scopes')
   } catch (e) {
-    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1'" +
-          " from node 'name-upper' in scope 'scope3'"
+    var message = 'Unable to access node "name-fromLiteral_" in scope "scope1"' +
+          ' from node "name-upper" in scope "scope3"'
     if (message !== String(e.message)) {
       throw e
     }
@@ -125,19 +125,19 @@ builder.add(function testDifferentScopePrivate(test) {
 builder.add(function testDifferentScopePrivateBuilder(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
 
   try {
     this.graph.newBuilder()
       .builds('name-fromLiteral_')
       .compile([])
-    test.fail("Should not be able to access private nodes from different scopes")
+    test.fail('Should not be able to access private nodes from different scopes')
   } catch (e) {
-    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
-          "from node 'builderOutput-anonymousBuilder1_1' in scope 'scope2'"
+    var message = 'Unable to access node "name-fromLiteral_" in scope "scope1" ' +
+          'from node "builderOutput-anonymousBuilder1_1" in scope "scope2"'
     if (message !== String(e.message)) {
       throw e
     }
@@ -148,7 +148,7 @@ builder.add(function testDifferentScopePrivateBuilder(test) {
 builder.add(function testSameScopePrivateBuilder(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
 
   return this.graph.newBuilder()
@@ -162,13 +162,13 @@ builder.add(function testSameScopePrivateBuilder(test) {
 builder.add(function testDifferentScopePrivateUsing(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
   this.graph.add('name-upper', function (name) {
     return name.toUpperCase()
   }, ['name'])
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
 
   this.graph.add('name-upperFromLiteral')
       .builds('name-upper').using('name-fromLiteral_')
@@ -177,10 +177,10 @@ builder.add(function testDifferentScopePrivateUsing(test) {
     this.graph.newBuilder()
       .builds('name-upperFromLiteral')
       .compile([])
-    test.fail("Should not be able to access private nodes from different scopes")
+    test.fail('Should not be able to access private nodes from different scopes')
   } catch (e) {
-    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
-          "from node 'name-upperFromLiteral' in scope 'scope2'"
+    var message = 'Unable to access node "name-fromLiteral_" in scope "scope1" ' +
+          'from node "name-upperFromLiteral" in scope "scope2"'
     if (message !== String(e.message)) {
       throw e
     }
@@ -191,22 +191,22 @@ builder.add(function testDifferentScopePrivateUsing(test) {
 builder.add(function testDifferentScopePrivateUsingInBuilder(test) {
   var name = 'Jeremy'
 
-  this.graph.setScope("scope1")
+  this.graph.setScope('scope1')
   this.graph.add('name-fromLiteral_', this.graph.literal(name))
   this.graph.add('name-upper', function (name) {
     return name.toUpperCase()
   }, ['name'])
 
-  this.graph.setScope("scope2")
+  this.graph.setScope('scope2')
 
   try {
     this.graph.newBuilder()
       .builds('name-upper').using('name-fromLiteral_')
       .compile([])
-    test.fail("Should not be able to access private nodes from different scopes")
+    test.fail('Should not be able to access private nodes from different scopes')
   } catch (e) {
-    var message = "Unable to access node 'name-fromLiteral_' in scope 'scope1' " +
-          "from node 'builderOutput-anonymousBuilder1_1' in scope 'scope2'"
+    var message = 'Unable to access node "name-fromLiteral_" in scope "scope1" ' +
+          'from node "builderOutput-anonymousBuilder1_1" in scope "scope2"'
     if (message !== String(e.message)) {
       throw e
     }
