@@ -183,7 +183,7 @@ builder.add(function testDuplicateTypesFail(test) {
       .type('number', Number)
     test.fail("You may not add the same type twice")
   } catch (e) {
-    test.equal(e.message, "A type already exists for 'number'")
+    test.equal(e.message, 'A type already exists for "number"')
   }
 
   test.done()
