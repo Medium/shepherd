@@ -494,7 +494,7 @@ builder.add(function testContructorInjectsNativeCtor(test) {
 
   if (semver.lt(process.version, 'v4.0.0')) return test.done()
 
-  var MyType = require('./testdata/MyType')
+  var MyType = require('./testdata/ctors').TwoArgCtor
 
   graph.add('myType')
     .args('b', 'c', 'a')
@@ -509,5 +509,51 @@ builder.add(function testContructorInjectsNativeCtor(test) {
     test.ok(myType instanceof MyType)
     test.equal(1, myType.a)
     test.equal(2, myType.b)
+  })
+})
+
+
+builder.add(function testContructorInjectsNativeCtor2(test) {
+  'use strict'
+
+  if (semver.lt(process.version, 'v4.0.0')) return test.done()
+
+  var MyType = require('./testdata/ctors').TwoArgCtorWithMethods
+
+  graph.add('myType')
+    .args('b', 'c', 'a')
+    .ctor(MyType)
+
+  return graph.newBuilder()
+      .builds('myType')
+        .using({'a': graph.literal(1)}, {'b': graph.literal(2)}, {'c': graph.literal(3)})
+      .run()
+  .then(function (data) {
+    var myType = data['myType']
+    test.ok(myType instanceof MyType)
+    test.equal(1, myType.a)
+    test.equal(2, myType.b)
+  })
+})
+
+
+builder.add(function testContructorInjectsNativeCtor3(test) {
+  'use strict'
+
+  if (semver.lt(process.version, 'v4.0.0')) return test.done()
+
+  var MyType = require('./testdata/ctors').DefaultCtor
+
+  graph.add('myType')
+    .args('b', 'c', 'a')
+    .ctor(MyType)
+
+  return graph.newBuilder()
+      .builds('myType')
+        .using({'a': graph.literal(1)}, {'b': graph.literal(2)}, {'c': graph.literal(3)})
+      .run()
+  .then(function (data) {
+    var myType = data['myType']
+    test.ok(myType instanceof MyType)
   })
 })
