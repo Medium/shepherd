@@ -2,6 +2,7 @@
 
 var Q = require('kew')
 var nodeunitq = require('nodeunitq')
+var semver = require('semver')
 var builder = new nodeunitq.Builder(exports)
 var utils = require('../lib/utils')
 
@@ -44,6 +45,47 @@ builder.add(function testNodeNames(test) {
   bad('req.*.*')
   bad('req.*.abc')
   bad('req*')
+
+  test.done()
+})
+
+builder.add(function testParseClassicFnParams(test) {
+  function named(one, two, three) {
+    something(true)
+  }
+
+  function single(arg) {
+    something(true)
+  }
+
+  function empty() {
+    something(true)
+  }
+
+  test.deepEqual(['one', 'two', 'three'], utils.parseFnParams(named))
+  test.deepEqual(['arg'], utils.parseFnParams(single))
+  test.deepEqual([], utils.parseFnParams(empty))
+
+  test.deepEqual(['one', 'two', 'three'], utils.parseFnParams(function (one, two, three) {
+    something(true)
+  }))
+  test.deepEqual(['arg'], utils.parseFnParams(function (arg) { something(true) }))
+  test.deepEqual([], utils.parseFnParams(function() { something(true) }))
+
+  test.done()
+})
+
+builder.add(function testParseArrowFnParams(test) {
+  'use strict'
+
+  if (semver.lt(process.version, 'v4.0.0')) return test.done()
+
+  var arrows = require('./testdata/arrows')
+
+  test.deepEqual([], utils.parseFnParams(arrows.empty))
+  test.deepEqual(['param'], utils.parseFnParams(arrows.single))
+  test.deepEqual(['param'], utils.parseFnParams(arrows.singleBare))
+  test.deepEqual(['hot', 'cross', 'buns'], utils.parseFnParams(arrows.multiple))
 
   test.done()
 })
