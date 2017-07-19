@@ -133,7 +133,7 @@ builder.add(function testDeepFreezeError(test) {
       test.fail("Should have thrown an assertion error")
     })
     .fail(function (e) {
-      test.equal(e.message, "Cannot assign to read only property 'name' of #<Object>", "Should have thrown an assertion error")
+      test.equal(e.message.indexOf("Cannot assign to read only property 'name'"), 0, "Should have thrown an assertion error")
     })
 })
 
