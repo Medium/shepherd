@@ -3,7 +3,7 @@ sudo: false
 
 env:
   - CXX="g++-4.8"
-  
+
 addons:
   apt:
     sources:
@@ -11,7 +11,8 @@ addons:
     packages:
       - gcc-4.8
       - g++-4.8
-  
+
 node_js:
-  - "4.0"
-  - "0.12"
+  - 6.0
+  - 4.0
+  - 0.12
