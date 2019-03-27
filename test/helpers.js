@@ -37,15 +37,15 @@ builder.add(function testGetClones(test) {
 
 // verify that all builders are returned by getBuilders()
 builder.add(function testGetBuilders(test) {
-  var oid = new utils.Oid()
+  var hasher = new utils.ValueHasher()
   var builders = {}
   var builder1 = this.graph.newBuilder()
   var builder2 = this.graph.newBuilder()
   var builder3 = this.graph.newBuilder("named")
 
-  builders[oid.getId(builder1)] = builder1
-  builders[oid.getId(builder2)] = builder2
-  builders[oid.getId(builder3)] = builder3
+  builders[hasher.getHash(builder1)] = builder1
+  builders[hasher.getHash(builder2)] = builder2
+  builders[hasher.getHash(builder3)] = builder3
 
   try {
     var builder4 = this.graph.newBuilder("named")
@@ -59,7 +59,7 @@ builder.add(function testGetBuilders(test) {
 
   for (var key in builderMap) {
     var builder = builderMap[key]
-    var hash = oid.getId(builder)
+    var hash = hasher.getHash(builder)
     test.equal(builders[hash], builder, "builder should exist")
     delete builders[hash]
   }
