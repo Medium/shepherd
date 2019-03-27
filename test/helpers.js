@@ -1,5 +1,4 @@
 // Copyright 2012 The Obvious Corporation.
-var oid = require('oid')
 var Q = require('kew')
 var nodeunitq = require('nodeunitq')
 var builder = new nodeunitq.Builder(exports)
@@ -38,14 +37,15 @@ builder.add(function testGetClones(test) {
 
 // verify that all builders are returned by getBuilders()
 builder.add(function testGetBuilders(test) {
+  var oid = new utils.Oid()
   var builders = {}
   var builder1 = this.graph.newBuilder()
   var builder2 = this.graph.newBuilder()
   var builder3 = this.graph.newBuilder("named")
 
-  builders[oid.hash(builder1)] = builder1
-  builders[oid.hash(builder2)] = builder2
-  builders[oid.hash(builder3)] = builder3
+  builders[oid.getId(builder1)] = builder1
+  builders[oid.getId(builder2)] = builder2
+  builders[oid.getId(builder3)] = builder3
 
   try {
     var builder4 = this.graph.newBuilder("named")
@@ -59,7 +59,7 @@ builder.add(function testGetBuilders(test) {
 
   for (var key in builderMap) {
     var builder = builderMap[key]
-    var hash = oid.hash(builder)
+    var hash = oid.getId(builder)
     test.equal(builders[hash], builder, "builder should exist")
     delete builders[hash]
   }
